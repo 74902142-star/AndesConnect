@@ -82,13 +82,33 @@ async def debug_db():
             cursos = await session.execute(text("SELECT COUNT(*) as c FROM cursos"))
             modulos = await session.execute(text("SELECT COUNT(*) as c FROM modulos"))
             users = await session.execute(text("SELECT COUNT(*) as c FROM local_users"))
+            faqs = await session.execute(text("SELECT COUNT(*) as c FROM faqs"))
             return {
                 "cursos": cursos.mappings().one()["c"],
                 "modulos": modulos.mappings().one()["c"],
                 "users": users.mappings().one()["c"],
+                "faqs": faqs.mappings().one()["c"],
             }
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/api/debug/seed-modulos")
+async def debug_seed_modulos():
+    try:
+        import uuid as _uuid
+        async with async_session() as session:
+            result = await session.execute(text("SELECT COUNT(*) as c FROM modulos"))
+            count = result.mappings().one()["c"]
+            if count == 0:
+                await session.execute(text(
+                    "INSERT INTO modulos (id, curso_id, titulo, descripcion, orden, tipo_contenido, contenido_url, duracion_minutos) VALUES (:id,:curso_id,:titulo,:descripcion,:orden,:tipo,:url,:duracion)"
+                ), {"id": str(_uuid.uuid4()), "curso_id": "drones-agricolas", "titulo": "Test Modulo", "descripcion": "Test", "orden": 1, "tipo": "video", "url": "https://example.com", "duracion": 30})
+                await session.commit()
+                result2 = await session.execute(text("SELECT COUNT(*) as c FROM modulos"))
+                return {"status": "inserted", "count": result2.mappings().one()["c"]}
+            return {"status": "already_has", "count": count}
+    except Exception as e:
+        return {"error": str(e), "type": type(e).__name__}
 
 if __name__ == "__main__":
     import uvicorn
