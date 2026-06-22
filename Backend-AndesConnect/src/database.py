@@ -202,6 +202,15 @@ async def init_local_auth_db():
             ]:
                 await conn.execute(text("INSERT INTO logros (id, titulo_clave, descripcion_clave, icono) VALUES (:id,:t,:d,:i)"), {"id": l[0], "t": l[1], "d": l[2], "i": l[3]})
 
+        existing_users = await conn.execute(text("SELECT COUNT(*) as cnt FROM local_users"))
+        if existing_users.mappings().one()["cnt"] == 0:
+            import hashlib
+            admin_pass = "admin123"
+            pass_hash = hashlib.sha256(admin_pass.encode()).hexdigest()
+            await conn.execute(text(
+                "INSERT INTO local_users (id, email, password_hash, nombre, location, rol) VALUES (:id,:email,:ph,:n,:loc,:rol)"
+            ), {"id": "admin-001", "email": "admin@andesconnect.com", "ph": pass_hash, "n": "Administrador", "loc": "Cusco", "rol": "admin"})
+
     logger.info("Tablas SQLite y datos iniciales creados.")
 
 
