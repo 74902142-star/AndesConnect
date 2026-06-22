@@ -1,0 +1,79 @@
+<header class="navbar-neo">
+  <div class="nav-container">
+    <a routerLink="/" class="logo-box">ANDESCONNECT</a>
+
+    <button class="hamburger" (click)="toggleMenu()" [class.open]="menuOpen()" [attr.aria-label]="ts.translate('nav.aria_menu')">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="nav-wrapper" [class.open]="menuOpen()">
+      <nav class="nav-links">
+        @if (!auth.isAuthenticated()) {
+          <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">
+            {{ ts.translate('nav.home') }}
+          </a>
+          <a routerLink="/courses" routerLinkActive="active" (click)="closeMenu()">
+            {{ ts.translate('nav.courses') }}
+          </a>
+          <a routerLink="/login" routerLinkActive="active" (click)="closeMenu()">
+            {{ ts.translate('nav.login') }}
+          </a>
+        } @else {
+          <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()">
+            {{ ts.translate('nav.dashboard') }}
+          </a>
+          <a routerLink="/courses" routerLinkActive="active" (click)="closeMenu()">
+            {{ ts.translate('nav.courses') }}
+          </a>
+          <a routerLink="/library" routerLinkActive="active" (click)="closeMenu()">
+            {{ ts.translate('nav.library_offline') }}
+          </a>
+          <a routerLink="/certificates" routerLinkActive="active" (click)="closeMenu()">
+            {{ ts.translate('nav.certificates') }}
+          </a>
+          <a routerLink="/profile" routerLinkActive="active" (click)="closeMenu()">
+            {{ ts.translate('nav.profile') }}
+          </a>
+          @if (auth.isAdmin()) {
+            <a routerLink="/admin/courses" routerLinkActive="active" (click)="closeMenu()" class="admin-link">
+              🛠️ PANEL ADMIN
+            </a>
+          }
+          <a (click)="logout(); closeMenu()" href="javascript:void(0)" class="logout-link">
+            {{ ts.translate('nav.logout') }}
+          </a>
+        }
+      </nav>
+
+      <div class="nav-actions">
+        <a routerLink="/sync-status" class="status-indicator" [class.online]="sync.isOnline()" [title]="sync.isOnline() ? ts.translate('nav.connected') : ts.translate('nav.offline_mode')">
+          @if (sync.isOnline()) {
+            <div class="status-box online-box">✓</div>
+          } @else {
+            <div class="status-box offline-box">⚡</div>
+          }
+        </a>
+
+        @if (auth.isAuthenticated()) {
+          <a routerLink="/notifications" class="notif-bell" [class.has-unread]="notifService.unreadCountSignal() > 0" (click)="closeMenu()">
+            🔔
+            @if (notifService.unreadCountSignal() > 0) {
+              <span class="notif-badge">{{ notifService.unreadCountSignal() > 9 ? '9+' : notifService.unreadCountSignal() }}</span>
+            }
+          </a>
+          <a routerLink="/settings" class="settings-icon" (click)="closeMenu()" title="Configuración">⚙</a>
+        }
+
+        <div class="lang-selector-box">
+          <button (click)="changeLanguage('es')" [class.active]="ts.currentLanguage() === 'es'">ES</button>
+          <span class="divider">|</span>
+          <button (click)="changeLanguage('qu')" [class.active]="ts.currentLanguage() === 'qu'">QU</button>
+        </div>
+
+        <a routerLink="/help-center" class="help-btn">?</a>
+      </div>
+    </div>
+  </div>
+</header>

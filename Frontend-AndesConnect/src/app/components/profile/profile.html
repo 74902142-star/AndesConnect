@@ -1,0 +1,125 @@
+<app-navbar />
+
+<div class="profile-wrapper">
+  <section class="profile-header">
+    <div class="profile-title-block">
+      <h1 class="profile-heading">{{ ts.translate('profile.title') }}</h1>
+      <p class="profile-sub">{{ ts.translate('profile.subtitle') }}</p>
+    </div>
+  </section>
+
+  <div class="profile-main">
+    <div class="profile-left">
+      <div class="info-card card-neo">
+        <div class="avatar-box">
+          <div class="avatar-letter">{{ userInitial }}</div>
+        </div>
+        <h2 class="info-heading">{{ ts.translate('profile.personal_info') }}</h2>
+
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+          <div class="info-field">
+            <label>{{ ts.translate('profile.name') }}</label>
+            <input type="text" class="input-neo" formControlName="name" [placeholder]="ts.translate('profile.name')">
+          </div>
+
+          <div class="info-field">
+            <label>{{ ts.translate('profile.email') }}</label>
+            <input type="email" class="input-neo" formControlName="email" [placeholder]="ts.translate('profile.email')">
+          </div>
+
+          <div class="info-field">
+            <label>{{ ts.translate('profile.location') }}</label>
+            <input type="text" class="input-neo" formControlName="location" [placeholder]="ts.translate('profile.location')">
+          </div>
+
+          <div class="info-field">
+            <label>{{ ts.translate('profile.role') }}</label>
+            <div class="role-display">{{ getRoleLabel() }}</div>
+          </div>
+
+          @if (saveSuccess()) {
+            <div class="success-banner">✓ {{ ts.translate('profile.saved') }}</div>
+          }
+
+          <button type="submit" class="btn-neo btn-black save-btn" [disabled]="profileForm.invalid">
+            {{ ts.translate('profile.save') }}
+          </button>
+        </form>
+
+        <button class="btn-neo logout-btn" (click)="logout()">
+          {{ ts.translate('profile.logout') }}
+        </button>
+
+        <div class="profile-quick-links">
+          <a routerLink="/certificates" class="btn-neo quick-link-btn">🎓 {{ ts.translate('nav.certificates') }}</a>
+          <a routerLink="/notifications" class="btn-neo quick-link-btn">🔔 {{ ts.translate('nav.notifications') }}</a>
+          <a routerLink="/settings" class="btn-neo quick-link-btn">⚙ {{ ts.translate('nav.settings') }}</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-right">
+      <div class="stats-grid">
+        <div class="stat-card card-neo stat-blue">
+          <div class="stat-icon">⏱</div>
+          <div class="stat-value">{{ totalStudyHours }}</div>
+          <div class="stat-label">{{ ts.translate('profile.study_hours') }}</div>
+        </div>
+        <div class="stat-card card-neo stat-yellow">
+          <div class="stat-icon">🏆</div>
+            <div class="stat-value">{{ completedCourses.toString().padStart(2, '0') }}</div>
+            <div class="stat-label">{{ ts.translate('profile.certificates') }}</div>
+        </div>
+        <div class="stat-card card-neo stat-red">
+          <div class="stat-icon">✓</div>
+          <div class="stat-value">{{ completedCourses }}</div>
+          <div class="stat-label">{{ ts.translate('profile.courses_completed') }}</div>
+        </div>
+      </div>
+
+      <div class="progress-card card-neo">
+        <h3>{{ ts.translate('profile.general_progress') }}</h3>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" [style.width]="totalProgress + '%'"></div>
+        </div>
+        <span class="progress-pct">{{ totalProgress }}%</span>
+      </div>
+
+      <div class="achievements-card card-neo">
+        <h3>{{ ts.translate('profile.achievements') }}</h3>
+        <div class="achievements-list">
+          @for (ach of userAchievements(); track ach.id) {
+            <div class="achievement-item">
+              <span class="ach-icon">{{ ach.icono }}</span>
+              <span class="ach-text">{{ ts.translate(ach.titulo_clave) }}</span>
+            </div>
+          }
+        </div>
+        @if (userAchievements().length === 0) {
+          <p class="no-achievements">{{ ts.translate('profile.no_achievements') }}</p>
+        }
+      </div>
+
+      <div class="certificates-card card-neo">
+        <h3>Mis Certificados</h3>
+        <div class="certificates-list">
+          @for (cert of certificates; track cert.id) {
+            <div class="certificate-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+              <div class="cert-info">
+                <span style="font-weight: 600; color: #1e3a5f;">{{ cert.courseTitle }}</span>
+              </div>
+              <button class="btn-neo btn-blue" (click)="downloadCertificate(cert)" style="padding: 6px 12px; font-size: 12px;">
+                Descargar PDF
+              </button>
+            </div>
+          }
+        </div>
+        @if (certificates.length === 0) {
+          <p class="no-certificates" style="color: #64748b; font-size: 14px; margin-top: 10px;">Aún no tienes certificados. ¡Completa un curso para obtener uno!</p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <app-footer />
+</div>

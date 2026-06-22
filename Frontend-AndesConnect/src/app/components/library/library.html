@@ -1,0 +1,113 @@
+<app-navbar />
+
+<div class="lw2">
+  <div class="library-main-content">
+    <section class="lh">
+      <div class="ltb">
+        <h1 class="lhg">{{ ts.translate('library.title') }}</h1>
+        <p class="lsub">{{ ts.translate('library.subtitle') }}</p>
+      </div>
+    </section>
+
+    @if (openMessage()) {
+      <div class="db2 db2-info" [style.animation]="'slideIn 0.3s ease'">
+        ℹ {{ openMessage() }}
+      </div>
+    }
+    @if (deleteMessage()) {
+      <div class="db2" [style.animation]="'slideIn 0.3s ease'">
+        ✓ {{ deleteMessage() }}
+      </div>
+    }
+
+    <div class="lm">
+      <div class="ll">
+
+        <div class="sc card-neo">
+          <div class="sch">
+            <span class="si">💾</span>
+            <strong>{{ ts.translate('library.storage') }}</strong>
+          </div>
+          <div class="ssr">
+            <span class="ssl">{{ ts.translate('library.used') }}</span>
+            <span class="ssv">{{ sync.usedSpace().toFixed(1) }}GB {{ ts.translate('library.of') }} {{ sync.maxSpace().toFixed(1) }}GB</span>
+          </div>
+          <div class="storage-bar-track">
+            <div class="storage-bar-fill" [style.width]="usedPercent + '%'"></div>
+          </div>
+          <div class="sfr">
+            <span class="fs2">{{ ts.translate('library.free') }}: {{ (sync.maxSpace() - sync.usedSpace()).toFixed(1) }}GB</span>
+            <button class="btn-neo btn-black sb2" (click)="goToSync()">
+              {{ ts.translate('sync.clear_cache') }}
+            </button>
+          </div>
+        </div>
+
+        <div class="occ card-neo">
+          <h2 class="section-title">{{ ts.translate('library.offline_courses') }}</h2>
+          <div class="dl3"></div>
+
+          @if (offlineCourses.length > 0) {
+            <div class="ocl">
+              @for (course of offlineCourses; track course.id) {
+                <div class="oci" [class]="'i' + course.theme + 'l'">
+                  <div class="ocif">
+                    <h3 class="oct">{{ course.title }}</h3>
+                    <span class="ocp">{{ course.progress }}% {{ ts.translate('library.completed') }}</span>
+                  </div>
+                  <div class="mini-track">
+                    <div class="mini-fill" [class]="'fill-' + course.theme" [style.width]="course.progress + '%'"></div>
+                  </div>
+                  <span class="oc2">✓</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="es">
+              <p>{{ ts.translate('library.no_offline_courses') }}</p>
+              <button class="btn-neo" (click)="goToCourses()">{{ ts.translate('library.download_more') }}</button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="lr">
+        <div class="fc2 card-neo">
+          <h2 class="section-title">{{ ts.translate('library.files') }}</h2>
+          <div class="dl3"></div>
+
+          @if (courseService.downloadedFiles().length > 0) {
+            <div class="fl2">
+              @for (file of courseService.downloadedFiles(); track file.name) {
+                <div class="fitem card-neo">
+                  <div class="fi2">{{ getFileIcon(file.type) }}</div>
+                  <div class="finf">
+                    <span class="fn2">{{ file.name }}</span>
+                    <div class="fm">
+                      <span class="ftb" [class.bp]="file.type === 'pdf'" [class.bv]="file.type === 'video'">
+                        {{ getFileTypeLabel(file.type) }}
+                      </span>
+                      <span class="fsz2">{{ file.size }}</span>
+                      <span class="fd">{{ formatDate(file.downloadedAt) }}</span>
+                    </div>
+                  </div>
+                  <div class="fa">
+                    <button class="btn-neo fob" (click)="openFile(file.name)">{{ ts.translate('library.open') }}</button>
+                    <button class="btn-neo fdb" (click)="deleteFile(file.name)">{{ ts.translate('library.delete') }}</button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="es">
+              <p>{{ ts.translate('library.no_files') }}</p>
+              <button class="btn-neo" (click)="goToCourses()">{{ ts.translate('library.download_more') }}</button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-footer />
+</div>

@@ -1,0 +1,351 @@
+<div class="admin-container">
+  <!-- Cabecera del Panel -->
+  <div class="admin-header mb-6">
+    <div>
+      <h1 class="text-3xl font-black">PANEL DE CONTROL</h1>
+      <p class="text-muted font-bold uppercase">Gestión de Cursos y Contenidos de AndesConnect</p>
+    </div>
+    <div class="flex gap-4">
+      <button routerLink="/dashboard" class="btn-neo font-black bg-white border-black border-2" title="Volver a la interfaz principal">
+        🏠 VOLVER AL INICIO
+      </button>
+      @if (currentView() === 'list') {
+        <button (click)="openCreateCourse()" class="btn-neo btn-black font-black">
+          + CREAR NUEVO CURSO
+        </button>
+      }
+      @if (currentView() !== 'list') {
+        <button (click)="backToList()" class="btn-neo font-black">
+          ← VOLVER A LA LISTA
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Banners de Notificación -->
+  @if (errorMessage()) {
+    <div class="alert alert-error mb-4">
+      {{ errorMessage() }}
+    </div>
+  }
+  @if (successMessage()) {
+    <div class="alert alert-success mb-4">
+      {{ successMessage() }}
+    </div>
+  }
+
+  <!-- Cargando... -->
+  @if (loading()) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <span class="font-black mt-2">PROCESANDO...</span>
+    </div>
+  }
+
+  <!-- VISTA: LISTA DE CURSOS -->
+  @if (currentView() === 'list') {
+    <div class="courses-list-view">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (course of coursesList(); track course.id) {
+          <div class="course-admin-card" [style.border-color]="course.color">
+            <div class="card-badge" [style.background-color]="course.color">
+              {{ course.category | uppercase }}
+            </div>
+            <div class="card-content">
+              <h3 class="course-title font-black text-xl mb-2">{{ course.title }}</h3>
+              <p class="course-desc text-sm mb-4">{{ course.description }}</p>
+              
+              <div class="course-meta text-xs font-bold mb-4">
+                <div><strong>Duración:</strong> {{ course.duration }}</div>
+                <div><strong>Módulos:</strong> {{ course.modules }}</div>
+                <div><strong>Nivel:</strong> {{ ts.translate(course.level) }}</div>
+                <div><strong>Docente:</strong> {{ course.instructor }}</div>
+                <div>
+                  <strong>Estado:</strong> 
+                  <span class="status-badge" [class.active]="course.available">
+                    {{ course.available ? 'DISPONIBLE' : 'OCULTO' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button (click)="openEditCourse(course)" class="btn-yellow" title="Editar Detalles">
+                ✏️ EDITAR
+              </button>
+              <button (click)="openManageModules(course)" class="btn-black" title="Administrar Contenido">
+                📚 MÓDULOS
+              </button>
+              <button (click)="deleteCourse(course.id)" class="btn-danger" title="Eliminar Curso">
+                🗑️ ELIMINAR
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- VISTA: FORMULARIO DE CURSO (CREAR / EDITAR) -->
+  @if (currentView() === 'course-form') {
+    <div class="form-container">
+      <h2 class="text-2xl font-black mb-6 border-b-4 border-black pb-2">
+        {{ isEditingCourse ? 'MODIFICAR DETALLES DEL CURSO' : 'CREAR UN NUEVO CURSO' }}
+      </h2>
+
+      <form [formGroup]="courseForm" (ngSubmit)="saveCourse()" class="admin-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="font-bold">ID Único del Curso (Slug)</label>
+            <input type="text" formControlName="id" class="input-neo" placeholder="ej. drones-agricolas">
+            @if (courseForm.controls['id'].touched && courseForm.controls['id'].invalid) {
+              <div class="field-error mt-1">
+                Requerido y solo letras minúsculas, números o guiones.
+              </div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="font-bold">Título del Curso</label>
+            <input type="text" formControlName="titulo" class="input-neo" placeholder="Ej. Introducción a Drones">
+          </div>
+
+          <div class="form-group col-span-2">
+            <label class="font-bold">Descripción Corta</label>
+            <textarea formControlName="descripcion" class="input-neo textarea" placeholder="Escriba los objetivos y detalles del curso..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="font-bold">Categoría</label>
+            <select formControlName="categoria" class="input-neo sel">
+              <option value="technology">Tecnología RURAL</option>
+              <option value="agriculture">Agroecología</option>
+              <option value="business">Emprendimiento y Finanzas</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="font-bold">Nivel</label>
+            <select formControlName="nivel" class="input-neo sel">
+              <option value="courses.beginner">Básico</option>
+              <option value="courses.intermediate">Intermedio</option>
+              <option value="courses.advanced">Avanzado</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="font-bold">Duración Estimada</label>
+            <input type="text" formControlName="duracion" class="input-neo" placeholder="Ej. 24h o 18 horas">
+          </div>
+
+          <div class="form-group">
+            <label class="font-bold">Instructor / Docente</label>
+            <input type="text" formControlName="instructor" class="input-neo" placeholder="Ej. Ing. David Condori">
+          </div>
+
+          <div class="form-group">
+            <label class="font-bold">Imagen del Banner</label>
+            <select formControlName="imagen" class="input-neo sel">
+              <option value="drones">Drones Agrícolas</option>
+              <option value="riego">Sistemas de Riego</option>
+              <option value="suelos">Análisis de Suelos</option>
+              <option value="business">Emprendimiento Rural</option>
+              <option value="agro">Agroecología</option>
+              <option value="cert">Certificación Orgánica</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="font-bold">Color Temático (CSS/Hex)</label>
+            <input type="color" formControlName="color" class="input-neo color-picker">
+          </div>
+
+          <div class="form-group flex items-center justify-between border-2 border-black p-3 bg-cream">
+            <span class="font-bold">Habilitar / Publicar Curso</span>
+            <input type="checkbox" formControlName="disponible" class="checkbox-large">
+          </div>
+        </div>
+
+        <div class="flex gap-4 mt-6">
+          <button type="submit" class="btn-neo btn-black font-black" [disabled]="courseForm.invalid">
+            GUARDAR CURSO
+          </button>
+          <button type="button" (click)="cancelCourseForm()" class="btn-neo font-black">
+            CANCELAR
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- VISTA: GESTIÓN DE MÓDULOS DE UN CURSO -->
+  @if (currentView() === 'modules') {
+    <div class="modules-container">
+      <div class="modules-header mb-6">
+        <div>
+          <h2 class="text-2xl font-black">
+            MÓDULOS DE: {{ selectedCourse()?.title }}
+          </h2>
+          <p class="text-muted font-semibold">Organice y administre las lecciones del curso. Añada videos, PDFs y cuestionarios.</p>
+        </div>
+        @if (!showModuleForm()) {
+          <button (click)="openCreateModule()" class="btn-neo btn-black font-black">
+            + AÑADIR NUEVO MÓDULO
+          </button>
+        }
+      </div>
+
+      <!-- FORMULARIO DE MÓDULO (INLINED) -->
+      @if (showModuleForm()) {
+        <div class="form-container mb-6 bg-cream border-4 border-black p-6">
+          <h3 class="text-lg font-black mb-4">
+            {{ editingModuleId ? 'EDITAR DETALLES DEL MÓDULO' : 'AGREGAR NUEVO MÓDULO' }}
+          </h3>
+          <form [formGroup]="moduleForm" (ngSubmit)="saveModule()" class="admin-form">
+            <div class="form-grid-small">
+              <div class="form-group">
+                <label class="font-bold">Título del Módulo</label>
+                <input type="text" formControlName="titulo" class="input-neo" placeholder="Ej. Sensores Multiespectrales">
+              </div>
+
+              <div class="form-group">
+                <label class="font-bold">Orden / Número</label>
+                <input type="number" formControlName="orden" class="input-neo">
+              </div>
+
+              <div class="form-group">
+                <label class="font-bold">Tipo de Contenido</label>
+                <select formControlName="tipo_contenido" class="input-neo sel">
+                  <option value="video">🎥 Video Instructivo</option>
+                  <option value="pdf">📄 Documento Técnico (PDF)</option>
+                  <option value="quiz">📝 Cuestionario / Examen</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="font-bold">Duración (Minutos)</label>
+                <input type="number" formControlName="duracion_minutos" class="input-neo">
+              </div>
+
+              <div class="form-group col-span-2">
+                <label class="font-bold">Descripción del Módulo</label>
+                <textarea formControlName="descripcion" class="input-neo textarea" rows="3" placeholder="Descripción detallada del contenido que el estudiante verá en este módulo..."></textarea>
+              </div>
+
+              <div class="form-group col-span-2">
+                @if (moduleForm.get('tipo_contenido')?.value === 'video') {
+                  <label class="font-bold">URL del Recurso (Video de YouTube)</label>
+                  <input type="text" formControlName="contenido_url" class="input-neo" placeholder="https://www.youtube.com/watch?v=...">
+                  <small class="text-muted">Para videos de YouTube use el enlace completo.</small>
+                } @else if (moduleForm.get('tipo_contenido')?.value === 'pdf') {
+                  <label class="font-bold">Subir Archivo PDF</label>
+                  <input type="file" accept=".pdf" (change)="onFileSelected($event)" class="input-neo">
+                  @if (uploadingFile()) {
+                    <div class="mt-2 font-bold text-yellow-600">⏳ Subiendo archivo, por favor espere...</div>
+                  }
+                  @if (editingModuleId && moduleForm.get('contenido_url')?.value) {
+                    <div class="mt-1 text-sm">Archivo actual: <a [href]="getFullUrl(moduleForm.get('contenido_url')?.value)" target="_blank" class="underline text-blue-600">Ver PDF</a></div>
+                  }
+                } @else if (moduleForm.get('tipo_contenido')?.value === 'quiz') {
+                  <label class="font-bold">Preguntas del Cuestionario</label>
+                  <div formArrayName="quizQuestions" class="quiz-editor mt-2">
+                    @for (qCtrl of quizQuestions.controls; track qCtrl; let i = $index) {
+                      <div [formGroupName]="i" class="border-2 border-black p-4 mb-4 bg-white relative">
+                        <button type="button" (click)="removeQuestion(i)" class="btn-neo btn-danger btn-sm absolute top-2 right-2">❌</button>
+                        
+                        <label class="font-bold text-sm">Pregunta {{ i + 1 }}</label>
+                        <input type="text" formControlName="text" class="input-neo mb-3" placeholder="Escriba la pregunta...">
+                        
+                        <div formArrayName="options" class="ml-4 pl-4 border-l-4 border-gray-300">
+                          <label class="font-black text-sm block mb-3 text-gray-700">Opciones de Respuesta (seleccione UNA correcta marcando el círculo)</label>
+                          @for (optCtrl of getOptions(i).controls; track optCtrl; let j = $index) {
+                            <div class="quiz-option-row"
+                                 [class.is-correct]="quizQuestions.at(i).get('correctAnswer')?.value === j">
+                              
+                              <input type="radio" 
+                                     [name]="'correctAnswer_' + i" 
+                                     [checked]="quizQuestions.at(i).get('correctAnswer')?.value === j"
+                                     (change)="quizQuestions.at(i).get('correctAnswer')?.setValue(j)"
+                                     class="quiz-radio"
+                                     title="Marcar como respuesta correcta">
+                                     
+                              <input type="text" [formControlName]="j" class="input-neo flex-1" placeholder="Escriba la opción {{ j + 1 }}...">
+                              
+                              <button type="button" (click)="removeOption(i, j)" class="btn-neo btn-danger px-3 py-2 font-bold text-xs" title="Eliminar opción">
+                                🗑️ ELIMINAR
+                              </button>
+                            </div>
+                          }
+                          <button type="button" (click)="addOption(i)" class="btn-neo bg-white border-2 border-dashed border-gray-400 text-gray-600 hover:border-black hover:text-black w-full py-2 mt-2 font-bold">
+                            + AÑADIR OTRA OPCIÓN
+                          </button>
+                        </div>
+                      </div>
+                    }
+                    <button type="button" (click)="addQuestion()" class="btn-neo btn-black btn-sm w-full">
+                      + AGREGAR OTRA PREGUNTA
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="flex gap-4 mt-4">
+              <button type="submit" class="btn-neo btn-black font-black" [disabled]="moduleForm.invalid">
+                GUARDAR MÓDULO
+              </button>
+              <button type="button" (click)="cancelModuleForm()" class="btn-neo font-black">
+                CANCELAR
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+
+      <!-- LISTA DE MÓDULOS EXISTENTES -->
+      <div class="modules-list">
+        @if (modulesList().length === 0) {
+          <div class="no-content-card">
+            <span class="text-4xl mb-2">📁</span>
+            <span class="font-black">ESTE CURSO AÚN NO TIENE MÓDULOS DE CONTENIDO</span>
+            <p class="text-xs text-muted mt-1">Haga clic en el botón superior para agregar el primer módulo.</p>
+          </div>
+        }
+
+        @for (mod of modulesList(); track mod.id) {
+          <div class="module-admin-row">
+            <div class="module-order-badge">
+              {{ mod.order }}
+            </div>
+            <div class="module-type-icon">
+              {{ getContentTypeIcon(mod.type) }}
+            </div>
+            <div class="module-info">
+              <h4 class="font-black text-lg">{{ mod.title }}</h4>
+              @if (mod.description && mod.description !== mod.title) {
+                <p class="module-desc-preview">{{ mod.description }}</p>
+              }
+              <div class="flex gap-4 text-xs font-bold text-muted uppercase mt-1">
+                <span><strong>TIPO:</strong> {{ mod.type }}</span>
+                <span><strong>DURACIÓN:</strong> {{ mod.duration }}</span>
+                @if (mod.contentUrl) {
+                  <span class="content-url-badge">🔗 RECURSO VINCULADO</span>
+                } @else {
+                  <span class="no-content-badge">⚠️ SIN RECURSO</span>
+                }
+              </div>
+            </div>
+            <div class="module-row-actions">
+              <button (click)="openEditModule(mod)" class="btn-neo btn-sm">
+                ✏️ EDITAR
+              </button>
+              <button (click)="deleteModule(mod.id)" class="btn-neo btn-danger btn-sm">
+                🗑️ ELIMINAR
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

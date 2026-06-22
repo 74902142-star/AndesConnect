@@ -1,0 +1,33 @@
+.certs-wrapper { min-height: 100vh; background: var(--bg-cream); }
+.certs-header { padding: 4rem 5% 2.5rem; border-bottom: var(--border-thick); background: #0F172A; color: #fff; }
+.certs-heading { font-size: clamp(2rem,5vw,4rem); font-weight: 900; line-height: 1; margin-bottom: .5rem; }
+.certs-sub { font-size: 1rem; opacity: .7; }
+.certs-body { max-width: 1200px; margin: 0 auto; padding: 3rem 5%; }
+.certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px,1fr)); gap: 1.5rem; }
+.cert-card { overflow: hidden; display: flex; flex-direction: column; border-radius: 12px; box-shadow: 0 1px 3px 0 #CBD5E1, 0 1px 2px -1px #CBD5E1; }
+.cert-top { padding: 1.5rem; color: #fff; display: flex; flex-direction: column; gap: .6rem; border-radius: 12px 12px 0 0; }
+.cert-ribbon { font-size: 2rem; }
+.cert-category { font-size: .75rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
+.cert-body { padding: 1.5rem; flex: 1; }
+.cert-label { font-size: .75rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: .3rem; }
+.cert-student { font-size: 1.4rem; font-weight: 900; margin-bottom: .5rem; }
+.cert-completed { font-size: .8rem; color: #94A3B8; margin-bottom: .4rem; }
+.cert-course { font-size: 1rem; font-weight: 800; margin-bottom: 1rem; }
+.cert-meta { display: flex; flex-direction: column; gap: .3rem; font-size: .8rem; color: #64748B; margin-bottom: .8rem; }
+.cert-id { font-size: .7rem; color: #CBD5E1; font-family: monospace; }
+.cert-footer { padding: 1rem 1.5rem; border-top: var(--border-thick); }
+.cert-dl-btn { width: 100%; }
+.certs-empty { max-width: 480px; margin: 4rem auto; padding: 3rem; text-align: center; border-radius: 12px; }
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.certs-empty h2 { font-size: 1.5rem; font-weight: 900; margin-bottom: .5rem; }
+.certs-empty p { color: #64748B; margin-bottom: 1.5rem; }
+
+@media (max-width: 480px) {
+  .certs-header { padding: 2rem 5% 1.5rem; }
+  .certs-heading { font-size: 2.5rem; }
+  .certs-grid { grid-template-columns: 1fr; }
+  .cert-body { padding: 1rem; }
+  .cert-student { font-size: 1.1rem; }
+  .cert-course { font-size: 0.9rem; }
+  .cert-footer { padding: 1rem; }
+}

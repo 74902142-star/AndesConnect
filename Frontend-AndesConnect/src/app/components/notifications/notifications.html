@@ -1,0 +1,40 @@
+<app-navbar />
+<div class="notif-wrapper">
+  <section class="notif-header">
+    <div class="notif-title-block">
+      <h1 class="notif-heading">{{ ts.translate('notif.title') }}</h1>
+      <p class="notif-sub">{{ ts.translate('notif.subtitle') }}</p>
+    </div>
+    <div class="notif-actions">
+      <button class="btn-neo" (click)="markAllRead()">{{ ts.translate('notif.mark_all') }}</button>
+      <button class="btn-neo" (click)="clearAll()">{{ ts.translate('notif.clear_all') }}</button>
+    </div>
+  </section>
+  <div class="notif-body">
+    @if (notifService.notifications().length > 0) {
+      <div class="notif-list">
+        @for (n of notifService.notifications(); track n.id) {
+          <div class="notif-item card-neo" [class.unread]="!n.read" (click)="handleClick(n)">
+            <div class="notif-icon-box" [style.background]="getTypeColor(n.type)">{{ getTypeIcon(n.type) }}</div>
+            <div class="notif-content">
+              <div class="notif-item-header">
+                <h3 class="notif-item-title">{{ n.title }}</h3>
+                @if (!n.read) { <span class="unread-dot"></span> }
+              </div>
+              <p class="notif-msg">{{ n.message }}</p>
+              <span class="notif-time">{{ notifService.formatTime(n.timestamp) }}</span>
+            </div>
+            <button class="notif-delete" (click)="deleteNotif(n.id, $event)">✕</button>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="notif-empty card-neo">
+        <div class="empty-icon">🔔</div>
+        <h2>{{ ts.translate('notif.empty_title') }}</h2>
+        <p>{{ ts.translate('notif.empty_desc') }}</p>
+      </div>
+    }
+  </div>
+  <app-footer />
+</div>

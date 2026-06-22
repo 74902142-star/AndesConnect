@@ -1,0 +1,185 @@
+<app-navbar />
+
+<div class="dw">
+
+  <section class="dh">
+    <div class="dhl">
+      <h1 class="dhg">{{ ts.translate('dash.progress') }}</h1>
+      <p class="ds">
+        {{ ts.translate('dash.welcome_back') }}<br>
+        {{ ts.translate('dash.tech_never_stops') }}
+      </p>
+    </div>
+  </section>
+
+  <div class="dm">
+    <div class="dl">
+
+      @if (hasEnrolledCourses()) {
+        <!-- Featured enrolled course -->
+        @let featured = courseService.courses()[0];
+        @if (featured) {
+          <div class="fc card-neo">
+            <div class="fb">{{ ts.translate('dash.last_lesson') }}</div>
+            <h2 class="ft">{{ featured.title }}</h2>
+            <p class="fsub">{{ featured.subtitle }}</p>
+            <div class="pr">
+              <span class="pl2">{{ ts.translate('dash.progress') }}</span>
+              <span class="pp">{{ featured.progress }}%</span>
+            </div>
+            <div class="pbar">
+              <div class="pbf" [style.width]="getProgressWidth(featured.progress)"></div>
+            </div>
+            <button class="btn-neo btn-black play" (click)="navigateTo('/courses/' + featured.id)">
+              ▶ {{ ts.translate('dash.continue_watching') }}
+            </button>
+          </div>
+        }
+
+        <!-- Other enrolled courses -->
+        <div class="sd">
+          <h3 class="sl">{{ ts.translate('dash.active_courses') }}</h3>
+          <div class="dl3"></div>
+        </div>
+
+        <div class="cg">
+          @for (course of courseService.courses().slice(1); track course.id) {
+            <div class="cc card-neo">
+              <div class="ct" [class]="'tb' + course.theme">
+                @if (course.downloaded) {
+                  <span class="ot">⬇ {{ ts.translate('dash.available_offline') }}</span>
+                }
+                @if (course.theme === 'blue') {
+                  <svg viewBox="0 0 80 60" width="80" height="60" class="ts">
+                    <rect width="80" height="60" fill="none"/>
+                    <path d="M10 50 L40 10 L70 50" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+                    <circle cx="40" cy="30" r="15" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+                    <line x1="20" y1="30" x2="60" y2="30" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 80 60" width="80" height="60" class="ts">
+                    <rect width="80" height="60" fill="none"/>
+                    <circle cx="20" cy="20" r="10" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+                    <rect x="35" y="15" width="35" height="25" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+                    <line x1="10" y1="45" x2="70" y2="45" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                  </svg>
+                }
+              </div>
+
+              <div class="ci">
+                <h4 class="cn">{{ course.title }}</h4>
+                <div class="mini-track">
+                  <div class="mini-fill" [class]="'fill-' + course.theme" [style.width]="getProgressWidth(course.progress)"></div>
+                </div>
+                <div class="cfr">
+                  <span class="pl">{{ course.progress }}% {{ ts.translate('dash.completed') }}</span>
+                  <button class="arrow card-neo" (click)="navigateTo('/courses/' + course.id)">→</button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- New user: Welcome + Recommended Courses -->
+        <div class="fc card-neo welcome-card">
+          <div class="fb">ANDESCONNECT</div>
+          <h2 class="ft">¡Bienvenido a AndesConnect!</h2>
+          <p class="fsub">Comienza tu aprendizaje inscribiéndote en uno de nuestros cursos. Todo el contenido está disponible 100% offline.</p>
+          <button class="btn-neo btn-black play" style="margin-top: 15px;" (click)="navigateTo('/courses')">
+            🔍 Explorar Catálogo Completo
+          </button>
+        </div>
+      }
+
+      <!-- Recommended Courses Section -->
+      @if (recommendedCourses().length > 0) {
+        <div class="sd">
+          <h3 class="sl">{{ hasEnrolledCourses() ? '📚 Cursos que te pueden interesar' : '🌟 Cursos Recomendados para ti' }}</h3>
+          <div class="dl3"></div>
+        </div>
+
+        <div class="rec-grid">
+          @for (course of recommendedCourses(); track course.id) {
+            <div class="rec-card card-neo" (click)="navigateTo('/courses/' + course.id)">
+              <div class="rec-header" [style.background-color]="course.color">
+                <span class="rec-cat-icon">{{ getCategoryIcon(course.category) }}</span>
+                <span class="rec-level">{{ ts.translate(course.level) }}</span>
+              </div>
+              <div class="rec-body">
+                <h4 class="rec-title">{{ course.title }}</h4>
+                <p class="rec-desc">{{ course.description }}</p>
+                <div class="rec-meta">
+                  <span>⏱ {{ course.duration }}</span>
+                  <span>📚 {{ course.modules }} módulos</span>
+                </div>
+                <div class="rec-footer">
+                  <span class="rec-instructor">👤 {{ course.instructor }}</span>
+                  <button class="btn-neo btn-rec-enroll" (click)="$event.stopPropagation(); quickEnroll(course.id)">
+                    🎓 Inscribirse
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="dr">
+
+      <div class="sc card-neo" [class.offline-mode]="!sync.isOnline()">
+        <div class="sib" [class.sir]="!sync.isOnline()" [class.sig]="sync.isOnline()">
+          @if (!sync.isOnline()) { <span>✕</span> } @else { <span>✓</span> }
+        </div>
+        <div class="st">
+          <strong>{{ onlineLabel }}</strong>
+          <p>{{ ts.translate('dash.last_sync') }} {{ sync.lastSyncTime() }}.<br>{{ ts.translate('dash.saved_locally') }}</p>
+          <button type="button" (click)="navigateTo('/sync-status')" class="sl2">{{ ts.translate('dash.sync_now') }}</button>
+        </div>
+      </div>
+
+      <div class="sr">
+        <div class="sc2 card-neo sb">
+          <svg viewBox="0 0 24 24" width="28" height="28">
+            <circle cx="12" cy="12" r="10" fill="none" stroke="#fff" stroke-width="2"/>
+            <polyline points="12 6 12 12 16 14" fill="none" stroke="#fff" stroke-width="2.5"/>
+          </svg>
+          <div class="sv">{{ totalStudyHours }}</div>
+          <div class="sl3">{{ ts.translate('dash.study_time') }}</div>
+        </div>
+        <div class="sc2 card-neo sy">
+          <svg viewBox="0 0 24 24" width="28" height="28">
+            <circle cx="12" cy="8" r="5" fill="none" stroke="#000" stroke-width="2"/>
+            <path d="M8 14l-3 7 7-2 7 2-3-7" fill="none" stroke="#000" stroke-width="2"/>
+          </svg>
+          <div class="sv">{{ certificatesCount }}</div>
+          <div class="sl3">{{ ts.translate('dash.certificates') }}</div>
+        </div>
+      </div>
+
+      <div class="lc card-neo">
+        <h4 class="lh">{{ ts.translate('dash.downloaded_material') }}</h4>
+        <div class="fl">
+          @for (file of courseService.downloadedFiles(); track file.name) {
+            <div class="fr">
+              <span class="fi">
+                @if (file.type === 'pdf') { 📄 } @else { 🎬 }
+              </span>
+              <span class="fn">{{ file.name }}</span>
+            </div>
+          }
+          @if (courseService.downloadedFiles().length === 0) {
+            <p class="empty-downloads">No hay archivos descargados aún.</p>
+          }
+        </div>
+        <button class="btn-neo btn-black lb" (click)="navigateTo('/library')">
+          {{ ts.translate('dash.view_full_library') }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <app-footer />
+
+</div>

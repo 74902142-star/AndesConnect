@@ -1,0 +1,72 @@
+<app-navbar />
+<div class="settings-wrapper">
+  <section class="settings-header">
+    <h1 class="settings-heading">{{ ts.translate('settings.title') }}</h1>
+    <p class="settings-sub">{{ ts.translate('settings.subtitle') }}</p>
+  </section>
+  <div class="settings-body">
+    @if (saveSuccess()) { <div class="success-banner">✓ {{ ts.translate('settings.saved') }}</div> }
+    @if (resetDone()) { <div class="success-banner">↺ {{ ts.translate('settings.reset_done') }}</div> }
+    <form [formGroup]="form" (ngSubmit)="save()" class="settings-form">
+
+      <div class="settings-section card-neo">
+        <h2 class="section-title">🌐 {{ ts.translate('settings.language') }}</h2>
+        <div class="settings-field">
+          <label>{{ ts.translate('settings.default_lang') }}</label>
+          <select class="input-neo" formControlName="defaultLanguage">
+            <option value="es">Español</option>
+            <option value="qu">Quechua</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-section card-neo">
+        <h2 class="section-title">🔔 {{ ts.translate('settings.notifications_title') }}</h2>
+        <div class="settings-toggle-field">
+          <label>{{ ts.translate('settings.notifications_enabled') }}</label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="notifications">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-section card-neo">
+        <h2 class="section-title">📶 {{ ts.translate('settings.sync_title') }}</h2>
+        <div class="settings-toggle-field">
+          <label>{{ ts.translate('settings.auto_sync') }}</label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="autoSync">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-toggle-field">
+          <label>{{ ts.translate('settings.wifi_only') }}</label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="downloadWifiOnly">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-section card-neo">
+        <h2 class="section-title">🔤 {{ ts.translate('settings.accessibility') }}</h2>
+        <div class="settings-field">
+          <label>{{ ts.translate('settings.font_size') }}</label>
+          <select class="input-neo" formControlName="fontSize">
+            <option value="small">Pequeño</option>
+            <option value="medium">Mediano</option>
+            <option value="large">Grande</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-actions">
+        <button type="submit" class="btn-neo btn-black">{{ ts.translate('settings.save') }}</button>
+        <button type="button" class="btn-neo" (click)="reset()">{{ ts.translate('settings.reset') }}</button>
+        <button type="button" class="btn-neo danger-btn" (click)="clearData()">{{ ts.translate('settings.clear_data') }}</button>
+      </div>
+    </form>
+  </div>
+  <app-footer />
+</div>

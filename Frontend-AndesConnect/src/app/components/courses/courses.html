@@ -1,0 +1,165 @@
+<app-navbar />
+
+<div class="courses-wrapper">
+  <section class="courses-header">
+    <div class="courses-title-block">
+      <h1 class="courses-heading">{{ ts.translate('courses.title') }}</h1>
+      <p class="courses-sub">{{ ts.translate('courses.subtitle') }}</p>
+    </div>
+  </section>
+
+  <!-- Filter Tabs -->
+  <div class="filter-bar">
+    <button class="filter-btn" [class.active]="activeFilter() === 'all'" [attr.aria-pressed]="activeFilter() === 'all'" (click)="setFilter('all')">
+      {{ ts.translate('courses.all') }}
+    </button>
+    <button class="filter-btn" [class.active]="activeFilter() === 'technology'" [attr.aria-pressed]="activeFilter() === 'technology'" (click)="setFilter('technology')">
+      {{ ts.translate('courses.technology') }}
+    </button>
+    <button class="filter-btn" [class.active]="activeFilter() === 'agriculture'" [attr.aria-pressed]="activeFilter() === 'agriculture'" (click)="setFilter('agriculture')">
+      {{ ts.translate('courses.agriculture') }}
+    </button>
+    <button class="filter-btn" [class.active]="activeFilter() === 'business'" [attr.aria-pressed]="activeFilter() === 'business'" (click)="setFilter('business')">
+      {{ ts.translate('courses.business') }}
+    </button>
+  </div>
+
+  <!-- Loading state -->
+  @if (courseService.catalogLoading()) {
+    <div class="catalog-loading">
+      <div class="loading-spinner"></div>
+      <p>Cargando cursos disponibles...</p>
+    </div>
+  }
+
+  <!-- Course Grid -->
+  <div class="catalog-grid">
+    @for (course of filteredCourses; track course.id) {
+      <div class="course-catalog-card card-neo" (click)="goToDetail(course.id)">
+        <div class="catalog-thumb" [style]="{ backgroundColor: course.color }">
+          <div class="thumb-overlay">
+            @if (isCourseActive(course.id)) {
+              <span class="enrolled-badge">✓ {{ ts.translate('courses.enrolled_badge') }}</span>
+            }
+            @if (isCourseDownloaded(course.id)) {
+              <span class="offline-badge">{{ ts.translate('courses.offline_badge') }}</span>
+            }
+            @if (!course.available) {
+              <span class="soon-badge">{{ ts.translate('courses.coming_soon_badge') }}</span>
+            }
+          </div>
+          <div class="thumb-icon">
+            @if (course.id === 'drones') {
+              <svg viewBox="0 0 60 40" width="60" height="40">
+                <path d="M10 30 L30 5 L50 30" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                <circle cx="30" cy="18" r="8" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+                <line x1="15" y1="30" x2="45" y2="30" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+              </svg>
+            } @else if (course.id === 'riego') {
+              <svg viewBox="0 0 60 40" width="60" height="40">
+                <path d="M15 35 Q30 5 45 35" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                <circle cx="30" cy="10" r="6" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+                <line x1="20" y1="30" x2="40" y2="30" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+              </svg>
+            } @else if (course.id === 'suelos') {
+              <svg viewBox="0 0 60 40" width="60" height="40">
+                <circle cx="20" cy="15" r="8" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+                <rect x="32" y="10" width="20" height="15" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+                <line x1="5" y1="30" x2="55" y2="30" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+              </svg>
+            } @else if (course.id === 'emprendimiento') {
+              <svg viewBox="0 0 60 40" width="60" height="40">
+                <polyline points="5,28 15,18 22,24 30,12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="2.5"/>
+                <circle cx="30" cy="12" r="3" fill="rgba(0,0,0,0.3)"/>
+              </svg>
+            } @else if (course.id === 'agroecologia') {
+              <svg viewBox="0 0 60 40" width="60" height="40">
+                <circle cx="20" cy="20" r="8" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+                <path d="M20 12 Q28 20 20 28 Q12 20 20 12" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                <line x1="20" y1="5" x2="20" y2="10" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+              </svg>
+            } @else {
+              <svg viewBox="0 0 60 40" width="60" height="40">
+                <rect x="10" y="8" width="40" height="24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+                <circle cx="20" cy="28" r="4" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+                <circle cx="40" cy="28" r="4" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+              </svg>
+            }
+          </div>
+          @if (!course.available) {
+            <div class="thumb-lock">🔒</div>
+          }
+        </div>
+
+        <div class="catalog-info">
+          <h3 class="catalog-title">{{ course.title }}</h3>
+          <p class="catalog-desc">{{ course.description }}</p>
+
+          <div class="catalog-meta">
+            <span class="meta-item">
+              <strong>{{ ts.translate('courses.duration') }}:</strong> {{ course.duration }}
+            </span>
+            <span class="meta-item">
+              <strong>{{ ts.translate('courses.modules') }}:</strong> {{ course.modules }}
+            </span>
+            <span class="meta-item">
+              <strong>{{ ts.translate('courses.level') }}:</strong> {{ ts.translate(course.level) }}
+            </span>
+            <span class="meta-item">
+              <strong>{{ ts.translate('courses.instructor') }}:</strong> {{ course.instructor }}
+            </span>
+          </div>
+
+          @if (isCourseActive(course.id)) {
+            <div class="catalog-progress">
+              <span class="progress-label">{{ ts.translate('courses.progress_label') }}: {{ getCourseProgress(course.id) }}%</span>
+              <div class="mini-track">
+                <div class="mini-fill" [style.width]="getCourseProgress(course.id) + '%'"></div>
+              </div>
+            </div>
+          }
+
+          <div class="catalog-footer">
+            @if (isCourseActive(course.id)) {
+              <button class="btn-neo btn-black" (click)="goToDetail(course.id)">
+                ▶ {{ ts.translate('courses.view') }}
+              </button>
+            } @else if (course.available) {
+              <button class="btn-neo btn-enroll" (click)="enrollCourse($event, course.id)" 
+                      [disabled]="enrollingId() === course.id"
+                      [class.enrolling]="enrollingId() === course.id">
+                @if (enrollingId() === course.id) {
+                  <span class="enroll-success-icon">✓</span> ¡Inscrito!
+                } @else {
+                  🎓 {{ ts.translate('courses.enroll') }}
+                }
+              </button>
+              <button class="btn-neo btn-detail" (click)="goToDetail(course.id)">
+                {{ ts.translate('courses.view') }}
+              </button>
+            } @else {
+              <button class="btn-neo btn-disabled" disabled>
+                {{ ts.translate('courses.coming_soon_badge') }}
+              </button>
+            }
+
+            @if (isCourseDownloaded(course.id)) {
+              <span class="downloaded-tag">✓ {{ ts.translate('courses.downloaded') }}</span>
+            } @else if (isCourseActive(course.id) && course.available) {
+              <button class="btn-neo download-hint-btn" (click)="downloadCourse($event, course)"
+                      [disabled]="downloadingId() === course.id">
+                @if (downloadingId() === course.id) { ⏳ Descargando... } @else { ⬇ {{ ts.translate('courses.download') }} }
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-catalog card-neo">
+        <p>{{ ts.translate('courses.no_courses') }}</p>
+      </div>
+    }
+  </div>
+
+  <app-footer />
+</div>

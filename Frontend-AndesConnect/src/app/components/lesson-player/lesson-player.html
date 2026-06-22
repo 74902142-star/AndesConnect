@@ -1,0 +1,252 @@
+<app-navbar />
+
+<div class="lp-wrapper">
+  @if (currentModule()) {
+    <div class="lp-layout">
+      <!-- Sidebar: Module List -->
+      <aside class="lp-sidebar">
+        <div class="lp-sidebar-header">
+          <button class="back-btn btn-neo" (click)="goBack()">← Volver</button>
+          <h3 class="lp-course-title">{{ catalog()?.title }}</h3>
+        </div>
+        <div class="lp-modules">
+          @for (mod of allModules(); track mod.id) {
+            <div class="lp-mod-item"
+                 [class.active]="mod.id === currentModule()!.id"
+                 [class.completed]="mod.completed"
+                 [class.locked]="mod.locked"
+                 (click)="selectModule(mod)">
+              <span class="lp-mod-num">{{ mod.order }}</span>
+              <span class="lp-mod-icon">
+                @if (mod.completed) { ✓ } @else if (mod.locked) { 🔒 } @else { {{ getModuleIcon(mod.type) }} }
+              </span>
+              <span class="lp-mod-name">{{ mod.title }}</span>
+            </div>
+          }
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <main class="lp-main">
+        @if (isLoading()) {
+          <div class="flex flex-col items-center justify-center h-full min-h-[400px]">
+            <div class="w-16 h-16 border-8 border-gray-200 border-t-black rounded-full animate-spin mb-6"></div>
+            <h3 class="text-2xl font-black mb-2">Cargando Módulo...</h3>
+            <p class="text-gray-500 font-bold text-center">Preparando el entorno de aprendizaje<br>para una mejor experiencia.</p>
+          </div>
+        } @else {
+          <!-- Video / PDF player area -->
+        <div class="lp-player card-neo">
+          @if (currentModule()!.type === 'video') {
+            <div class="lp-video-area">
+              @if (safeContentUrl() && isVideoEmbed()) {
+                <!-- Real video embed (YouTube/Vimeo) -->
+                <div class="lp-video-embed">
+                  <iframe [src]="safeContentUrl()"
+                          frameborder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowfullscreen
+                          class="lp-iframe">
+                  </iframe>
+                </div>
+              } @else {
+                <!-- Placeholder video (no URL or offline) -->
+                <div class="lp-video-placeholder">
+                  <div class="lp-play-icon">▶</div>
+                  <p>{{ currentModule()!.title }}</p>
+                  <div class="lp-video-progress-track">
+                    <div class="lp-video-progress-fill" [style.width]="videoProgress() + '%'"></div>
+                  </div>
+                  <small>{{ videoProgress() }}% visualizado</small>
+                </div>
+              }
+            </div>
+          } @else if (currentModule()!.type === 'pdf') {
+            <div class="lp-pdf-area">
+              @if (safeContentUrl()) {
+                <!-- Archivo PDF vinculado -->
+                <div class="lp-pdf-card text-center py-10 px-6 bg-[#f9f7f3] border-4 border-black rounded-xl">
+                  <div class="lp-pdf-icon text-6xl mb-4">📄</div>
+                  <h3 class="text-2xl font-black mb-2">{{ currentModule()!.title }}</h3>
+                  <p class="text-gray-600 font-bold mb-6">El material de lectura para este módulo está disponible en formato PDF.</p>
+                  
+                  <a [href]="getFullUrl(currentModule()!.contentUrl)" target="_blank" rel="noopener noreferrer" class="btn-neo btn-black text-xl px-8 py-4 inline-flex items-center justify-center gap-3">
+                    <span>👁️</span> ABRIR DOCUMENTO PDF
+                  </a>
+                  
+                  @if (currentModule()!.description && currentModule()!.description !== currentModule()!.title) {
+                    <div class="mt-8 pt-6 border-t-2 border-dashed border-gray-300 text-left max-w-2xl mx-auto">
+                      <h4 class="font-bold text-sm text-gray-500 uppercase tracking-widest mb-2">Acerca de este documento</h4>
+                      <p class="text-gray-700 leading-relaxed">{{ currentModule()!.description }}</p>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <!-- Placeholder PDF (no URL) -->
+                <div class="lp-pdf-icon">📄</div>
+                <h3>{{ currentModule()!.title }}</h3>
+                <p>Documento PDF — Lectura Offline Disponible</p>
+                <div class="lp-pdf-content">
+                  <p>{{ currentModule()!.description }}</p>
+                  <p>Este documento contiene el material teórico y práctico del módulo. Cuando el administrador vincule un archivo PDF, aparecerá aquí directamente.</p>
+                  <p>Incluye ejercicios, tablas de referencia y guías paso a paso para implementar los conceptos aprendidos en tu comunidad.</p>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="lp-quiz-area">
+              @if (!quizStarted() && !quizFinished()) {
+                <div class="quiz-intro">
+                  <div class="lp-quiz-icon">📝</div>
+                  <h3>Evaluación: {{ currentModule()!.title }}</h3>
+                  <p>Esta evaluación consta de <strong>{{ questions.length }} preguntas</strong> sobre el contenido estudiado.</p>
+                  <p>Puntuación mínima recomendada para aprobar: <strong>70%</strong>.</p>
+                  
+                  @if (completed()) {
+                    <div class="already-completed-badge">
+                      ✓ Ya has aprobado esta evaluación.
+                    </div>
+                  }
+                  
+                  <button class="btn-neo btn-black start-quiz-btn" style="width: 100%;" (click)="startQuiz()">
+                    🚀 Iniciar Evaluación
+                  </button>
+                </div>
+              } @else if (quizStarted() && !quizFinished()) {
+                <div class="quiz-playing">
+                  <div class="quiz-header" style="margin-bottom: 1rem; display: block;">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.9rem;">
+                      <span>Pregunta {{ currentQuestionIndex() + 1 }} de {{ questions.length }}</span>
+                      <span>Progreso</span>
+                    </div>
+                    <div class="quiz-progress-bar">
+                      <div class="quiz-progress-fill" [style.width]="((currentQuestionIndex() + 1) / questions.length * 100) + '%'"></div>
+                    </div>
+                  </div>
+                  
+                  <div class="quiz-q card-neo" style="margin-bottom: 1.5rem;">
+                    <p class="quiz-text" style="font-size: 1.1rem; line-height: 1.4; margin-bottom: 1.2rem;">{{ currentQuestion.text }}</p>
+                    <div class="quiz-opts">
+                      @for (opt of currentQuestion.options; track opt; let idx = $index) {
+                        <button class="quiz-opt btn-neo" 
+                                [class.selected]="selectedAnswers()[currentQuestionIndex()] === idx"
+                                (click)="selectOption(idx)">
+                          <span class="flex-1">{{ opt }}</span>
+                          @if (selectedAnswers()[currentQuestionIndex()] === idx) {
+                            <span class="font-black text-xl ml-4">✓ ELEGIDO</span>
+                          }
+                        </button>
+                      }
+                    </div>
+                  </div>
+                  
+                  <div class="quiz-navigation">
+                    <button class="btn-neo prev-btn" 
+                            [disabled]="currentQuestionIndex() === 0" 
+                            (click)="prevQuestion()">
+                      ← Anterior
+                    </button>
+                    
+                    <button class="btn-neo next-btn btn-black" 
+                            [disabled]="selectedAnswers()[currentQuestionIndex()] === -1"
+                            (click)="nextQuestion()">
+                      {{ currentQuestionIndex() + 1 === questions.length ? 'Finalizar' : 'Siguiente →' }}
+                    </button>
+                  </div>
+                </div>
+              } @else if (quizFinished()) {
+                <div class="quiz-results card-neo" style="padding: 2.5rem; text-align: center;">
+                  <div class="result-icon" style="font-size: 4rem; margin-bottom: 1rem;">
+                    @if (quizApproved()) { 🎉 } @else { ❌ }
+                  </div>
+                  <h3 style="font-weight: 900; font-size: 1.5rem; margin-bottom: 0.5rem;">Resultado de la Evaluación</h3>
+                  <p class="result-score" style="font-size: 1.2rem; margin-bottom: 1.5rem;">Tu puntuación: <strong style="font-size: 1.5rem;">{{ quizScore() }}%</strong></p>
+                  
+                  @if (quizApproved()) {
+                    <p class="result-message approved" style="font-weight: 800; font-size: 1.1rem; margin-bottom: 2rem;">¡Felicitaciones! Has aprobado el módulo satisfactoriamente.</p>
+                    @if (hasNext) {
+                      <button class="btn-neo btn-black next-btn" style="width: 100%;" (click)="goToNextModule()">
+                        Continuar al Siguiente Módulo →
+                      </button>
+                    } @else {
+                      <button class="btn-neo btn-black" style="width: 100%;" (click)="goBack()">
+                        ← Volver a Cursos
+                      </button>
+                    }
+                  } @else {
+                    <p class="result-message failed" style="font-weight: 800; font-size: 1.1rem; margin-bottom: 2rem;">No has alcanzado la puntuación mínima (70%). Te recomendamos repasar los contenidos.</p>
+                    <button class="btn-neo btn-black retry-btn" style="width: 100%;" (click)="startQuiz()">
+                      🔄 Intentar de Nuevo
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Module info -->
+        <div class="lp-info card-neo">
+          <div class="lp-info-header">
+            <div>
+              <h2 class="lp-mod-title">{{ currentModule()!.title }}</h2>
+              <p class="lp-mod-desc">{{ currentModule()!.description }}</p>
+              <div class="lp-mod-meta">
+                <span>{{ getModuleIcon(currentModule()!.type) }} {{ currentModule()!.type.toUpperCase() }}</span>
+                <span>⏱ {{ currentModule()!.duration }}</span>
+                @if (currentModule()!.contentUrl) {
+                  <span class="resource-linked">🔗 Recurso vinculado</span>
+                }
+                @if (currentModule()!.completed) {
+                  <span class="completed-tag">✓ COMPLETADO</span>
+                }
+              </div>
+            </div>
+
+            <button class="notes-toggle btn-neo" (click)="toggleNotes()">
+              📓 {{ showNotes() ? 'Ocultar Notas' : 'Mis Notas' }}
+            </button>
+          </div>
+
+          @if (showNotes()) {
+            <div class="lp-notes">
+              <textarea class="notes-area input-neo" [value]="notes()" (input)="updateNotes($event)"
+                        placeholder="Escribe tus apuntes del módulo aquí..."></textarea>
+            </div>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="lp-actions">
+          @if (hasPrev) {
+            <button class="btn-neo prev-btn" (click)="goToPrevModule()">
+              ← Módulo Anterior
+            </button>
+          }
+
+          @if (!completed()) {
+            @if (currentModule()!.type !== 'quiz') {
+              <button class="btn-neo btn-black complete-btn" (click)="markComplete()">
+                ✓ Marcar como Completado
+              </button>
+            }
+          } @else {
+            <div class="completed-banner">✓ Módulo Completado</div>
+          }
+
+          @if (hasNext) {
+            <button class="btn-neo next-btn" (click)="goToNextModule()">
+              Siguiente Módulo →
+            </button>
+          }
+        </div>
+        }
+      </main>
+    </div>
+  } @else {
+    <div class="lp-not-found card-neo">
+      <p>Módulo no encontrado.</p>
+      <button class="btn-neo btn-black" (click)="goBack()">← Volver al Curso</button>
+    </div>
+  }
+</div>

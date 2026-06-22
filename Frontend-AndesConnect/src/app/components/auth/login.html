@@ -1,0 +1,264 @@
+<div class="aw">
+  <div class="tp">
+    <div class="lang card-neo">
+      <button (click)="changeLanguage('es')" [class.active]="ts.currentLanguage() === 'es'">ES</button>
+      <div class="vl"></div>
+      <button (click)="changeLanguage('qu')" [class.active]="ts.currentLanguage() === 'qu'">QU</button>
+    </div>
+    <a routerLink="/help-center" class="hb btn-neo">
+      <span>?</span>
+    </a>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="err-banner card-neo">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (!isRegisterMode()) {
+    <div class="lct">
+      <div class="lc card-neo">
+        <h1 class="logo">ANDESCONNECT</h1>
+        <p class="ls">{{ ts.translate('auth.slogan') }}</p>
+
+        <div class="ibw">
+          <div class="bolt">⚡</div>
+        </div>
+
+        <div class="tabs">
+          <button type="button" class="tab-btn active" (click)="setRegisterMode(false)">{{ ts.translate('auth.tab_login') }}</button>
+          <button type="button" class="tab-btn" (click)="setRegisterMode(true)">{{ ts.translate('auth.tab_register') }}</button>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="fc">
+          <div class="form-group">
+            <label>{{ ts.translate('auth.field_email') }}</label>
+            <input type="email" class="input-neo" [class.invalid]="loginForm.controls.email.invalid && loginForm.controls.email.touched"
+                   formControlName="email" [placeholder]="ts.translate('auth.placeholder_email')">
+            @if (loginForm.controls.email.invalid && loginForm.controls.email.touched) {
+              <span class="field-error">
+                @if (loginForm.controls.email.hasError('required')) {
+                  {{ ts.translate('auth.error_required_email') }}
+                } @else {
+                  {{ ts.translate('auth.error_invalid_email') }}
+                }
+              </span>
+            }
+          </div>
+
+          <div class="form-group">
+            <div class="lr">
+              <label>{{ ts.translate('auth.field_password') }}</label>
+              <button type="button" class="fl" (click)="goToForgotPassword()">{{ ts.translate('auth.forgot_password') }}</button>
+            </div>
+            <input type="password" class="input-neo" [class.invalid]="loginForm.controls.password.invalid && loginForm.controls.password.touched"
+                   formControlName="password" [placeholder]="ts.translate('auth.placeholder_password')"
+                   autocomplete="current-password">
+            @if (loginForm.controls.password.invalid && loginForm.controls.password.touched) {
+              <span class="field-error">
+                @if (loginForm.controls.password.hasError('required')) {
+                  {{ ts.translate('auth.error_required_password') }}
+                } @else {
+                  {{ ts.translate('auth.error_password_minlength') }}
+                }
+              </span>
+            }
+          </div>
+
+          <button type="submit" class="btn-neo btn-black submit" [disabled]="loginForm.invalid">
+            {{ ts.translate('auth.btn_login') }} &rarr;
+          </button>
+        </form>
+
+        <button type="button" class="btn-neo sg" (click)="accessOffline()">
+          <span class="syi">⤧</span> {{ ts.translate('sync.offline') }}
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="rl">
+      <div class="is">
+        <h1 class="mh">{{ ts.translate('auth.join_title') }}</h1>
+
+        <div class="ig">
+          <div class="ic card-neo cp">
+            <div class="ci">👁‍🗨</div>
+            <h3>{{ ts.translate('auth.card_offline_title') }}</h3>
+            <p>{{ ts.translate('auth.card_offline_desc') }}</p>
+          </div>
+
+          <div class="icr">
+            <div class="ic card-neo cy">
+              <div class="ci">🎓</div>
+              <h3>{{ ts.translate('auth.card_edu_title') }}</h3>
+              <p>{{ ts.translate('auth.card_edu_desc') }}</p>
+            </div>
+
+            <div class="ic card-neo cr">
+              <div class="ci">⚛</div>
+              <h3>{{ ts.translate('auth.card_community_title') }}</h3>
+              <p>{{ ts.translate('auth.card_community_desc') }}</p>
+            </div>
+          </div>
+
+          <div class="ic card-neo cg2">
+            <h3>{{ ts.translate('auth.card_field_title') }}</h3>
+            <p>{{ ts.translate('auth.card_field_desc') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="fms">
+        <div class="rc card-neo">
+          <h2 class="rt">{{ ts.translate('auth.form_register_title') }}</h2>
+          <p class="fst">{{ ts.translate('auth.form_register_subtitle') }}</p>
+
+          <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="fc">
+            <div class="form-group">
+              <label>{{ ts.translate('auth.field_name') }}</label>
+              <input type="text" class="input-neo" [class.invalid]="registerForm.controls.name.invalid && registerForm.controls.name.touched"
+                     formControlName="name" [placeholder]="ts.translate('auth.placeholder_name')">
+              @if (registerForm.controls.name.invalid && registerForm.controls.name.touched) {
+                <span class="field-error">{{ ts.translate('auth.error_required_name') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>{{ ts.translate('auth.field_email') }}</label>
+              <input type="email" class="input-neo" [class.invalid]="registerForm.controls.email.invalid && registerForm.controls.email.touched"
+                     formControlName="email" [placeholder]="ts.translate('auth.placeholder_email')">
+              @if (registerForm.controls.email.invalid && registerForm.controls.email.touched) {
+                <span class="field-error">
+                  @if (registerForm.controls.email.hasError('required')) {
+                    {{ ts.translate('auth.error_required_email') }}
+                  } @else {
+                    {{ ts.translate('auth.error_invalid_email') }}
+                  }
+                </span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>{{ ts.translate('auth.field_location') }}</label>
+              <div class="iw">
+                <span class="ii">📍</span>
+                <input type="text" class="input-neo pl" [class.invalid]="registerForm.controls.location.invalid && registerForm.controls.location.touched"
+                       formControlName="location" [placeholder]="ts.translate('auth.placeholder_location')">
+              </div>
+              @if (registerForm.controls.location.invalid && registerForm.controls.location.touched) {
+                <span class="field-error">{{ ts.translate('auth.error_required_location') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>{{ ts.translate('auth.field_role') }}</label>
+              <select class="input-neo sel" [class.invalid]="registerForm.controls.role.invalid && registerForm.controls.role.touched"
+                      formControlName="role">
+                <option value="student">{{ ts.translate('auth.role_student') }}</option>
+                <option value="teacher">{{ ts.translate('auth.role_teacher') }}</option>
+              </select>
+              @if (registerForm.controls.role.invalid && registerForm.controls.role.touched) {
+                <span class="field-error">{{ ts.translate('auth.error_required_role') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>{{ ts.translate('auth.field_password') }}</label>
+              <input type="password" class="input-neo" [class.invalid]="registerForm.controls.password.invalid && registerForm.controls.password.touched"
+                     formControlName="password" [placeholder]="ts.translate('auth.placeholder_password')"
+                     autocomplete="new-password">
+              @if (registerForm.controls.password.value.length > 0) {
+                <div class="pwd2">
+                  <div class="pwd-bar-track">
+                    <div class="pwd-bar-fill" [style.width.%]="passwordScore()"
+                         [class.weak]="passwordScore() < 40"
+                         [class.medium]="passwordScore() >= 40 && passwordScore() < 70"
+                         [class.strong]="passwordScore() >= 70"></div>
+                  </div>
+                  <span class="pwd-lbl">
+                    @if (passwordScore() < 40) { {{ ts.translate('auth.error_password_weak') }} }
+                    @else if (passwordScore() < 70) { {{ ts.translate('auth.error_password_medium') }} }
+                    @else { {{ ts.translate('auth.error_password_strong') }} }
+                  </span>
+                </div>
+                <div class="pwd-reqs">
+                  <div class="req-item" [class.met]="passwordErrors().minLength">
+                    <span class="req-icon">{{ passwordErrors().minLength ? '✓' : '✗' }}</span>
+                    <span>{{ ts.translate('auth.req_minlength') }}</span>
+                  </div>
+                  <div class="req-item" [class.met]="passwordErrors().hasUpper">
+                    <span class="req-icon">{{ passwordErrors().hasUpper ? '✓' : '✗' }}</span>
+                    <span>{{ ts.translate('auth.req_uppercase') }}</span>
+                  </div>
+                  <div class="req-item" [class.met]="passwordErrors().hasLower">
+                    <span class="req-icon">{{ passwordErrors().hasLower ? '✓' : '✗' }}</span>
+                    <span>{{ ts.translate('auth.req_lowercase') }}</span>
+                  </div>
+                  <div class="req-item" [class.met]="passwordErrors().hasDigit">
+                    <span class="req-icon">{{ passwordErrors().hasDigit ? '✓' : '✗' }}</span>
+                    <span>{{ ts.translate('auth.req_digit') }}</span>
+                  </div>
+                  <div class="req-item" [class.met]="passwordErrors().hasSpecial">
+                    <span class="req-icon">{{ passwordErrors().hasSpecial ? '✓' : '✗' }}</span>
+                    <span>{{ ts.translate('auth.req_special') }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>{{ ts.translate('auth.field_confirm_password') }}</label>
+              <input type="password" class="input-neo" [class.invalid]="registerForm.controls.confirmPassword.invalid && registerForm.controls.confirmPassword.touched"
+                     formControlName="confirmPassword" [placeholder]="ts.translate('auth.placeholder_confirm_password')">
+              @if (registerForm.controls.confirmPassword.invalid && registerForm.controls.confirmPassword.touched) {
+                <span class="field-error">{{ ts.translate('auth.error_password_mismatch') }}</span>
+              }
+            </div>
+
+            <button type="submit" class="btn-neo btn-black submit" [disabled]="registerForm.invalid">
+              {{ ts.translate('auth.btn_register') }}
+            </button>
+          </form>
+
+          <div class="ff">
+            <button type="button" (click)="setRegisterMode(false)" class="sl2">
+              {{ ts.translate('auth.link_has_account') }}
+            </button>
+          </div>
+
+          <div class="ib2 card-neo">
+            <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" class="ss" aria-hidden="true">
+              <defs>
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e6e3db" stroke-width="1"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#grid)" />
+              <path d="M 0 100 Q 100 80 200 95 T 400 90 L 400 120 L 0 120 Z" fill="#ece8e1" stroke="#000000" stroke-width="2"/>
+              <path d="M 0 105 Q 120 95 250 108 T 400 102" fill="none" stroke="#000000" stroke-width="1.5" stroke-dasharray="4,4" />
+              <line x1="80" y1="102" x2="30" y2="120" stroke="#000000" stroke-width="2"/>
+              <line x1="120" y1="100" x2="90" y2="120" stroke="#000000" stroke-width="2"/>
+              <line x1="160" y1="98" x2="150" y2="120" stroke="#000000" stroke-width="2"/>
+              <line x1="200" y1="96" x2="210" y2="120" stroke="#000000" stroke-width="2"/>
+              <line x1="240" y1="98" x2="270" y2="120" stroke="#000000" stroke-width="2"/>
+              <line x1="300" y1="95" x2="300" y2="60" stroke="#000000" stroke-width="3"/>
+              <line x1="320" y1="94" x2="310" y2="60" stroke="#000000" stroke-width="2"/>
+              <polygon points="260,60 340,40 360,65 280,85" fill="#4f46e5" stroke="#000000" stroke-width="2"/>
+              <line x1="300" y1="50" x2="320" y2="75" stroke="#ffffff" stroke-width="1.5"/>
+              <line x1="280" y1="55" x2="300" y2="80" stroke="#ffffff" stroke-width="1.5"/>
+              <line x1="320" y1="45" x2="340" y2="70" stroke="#ffffff" stroke-width="1.5"/>
+              <line x1="270" y1="72" x2="350" y2="52" stroke="#ffffff" stroke-width="1.5"/>
+              <circle cx="70" cy="40" r="18" fill="#ebd047" stroke="#000000" stroke-width="2"/>
+              <line x1="70" y1="15" x2="70" y2="9" stroke="#000000" stroke-width="2"/>
+              <line x1="70" y1="65" x2="70" y2="71" stroke="#000000" stroke-width="2"/>
+              <line x1="45" y1="40" x2="39" y2="40" stroke="#000000" stroke-width="2"/>
+              <line x1="95" y1="40" x2="101" y2="40" stroke="#000000" stroke-width="2"/>
+              <path d="M 130 35 Q 140 25 155 30 Q 170 25 180 35 Q 190 40 180 48 L 130 48 Z" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,38 @@
+.notif-wrapper { min-height: 100vh; background: var(--bg-cream); }
+.notif-header { padding: 4rem 5% 2rem; border-bottom: var(--border-thick); display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; }
+.notif-heading { font-size: clamp(2rem,4vw,3.5rem); font-weight: 900; margin-bottom: .4rem; }
+.notif-sub { font-size: .9rem; color: #64748B; }
+.notif-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+.notif-body { max-width: 800px; margin: 0 auto; padding: 2.5rem 5%; }
+.notif-list { display: flex; flex-direction: column; gap: .8rem; }
+.notif-item {
+  display: grid;
+  grid-template-columns: 52px 1fr 36px;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: transform .1s, box-shadow .1s;
+  border-radius: 10px;
+}
+.notif-item:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px #CBD5E1, 0 2px 4px -2px #CBD5E1; }
+.notif-item.unread { background: #FFFBEB; border-left: 4px solid #F59E0B; }
+.notif-icon-box {
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  border: var(--border-thick);
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+.notif-item-header { display: flex; gap: .5rem; align-items: center; margin-bottom: .3rem; }
+.notif-item-title { font-size: .95rem; font-weight: 800; }
+.unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #F59E0B; border: 2px solid #0F172A; flex-shrink: 0; }
+.notif-msg { font-size: .85rem; color: #475569; margin-bottom: .3rem; }
+.notif-time { font-size: .75rem; color: #94A3B8; font-weight: 600; }
+.notif-delete { background: transparent; border: none; color: #94A3B8; cursor: pointer; font-size: 1rem; padding: .3rem; transition: color .15s; }
+.notif-delete:hover { color: #EF4444; }
+.notif-empty { max-width: 400px; margin: 4rem auto; padding: 3rem; text-align: center; }
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.notif-empty h2 { font-size: 1.4rem; font-weight: 900; margin-bottom: .5rem; }
+.notif-empty p { color: #64748B; }

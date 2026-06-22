@@ -1,0 +1,52 @@
+<app-navbar />
+
+<div class="certs-wrapper">
+  <section class="certs-header">
+    <div class="certs-title-block">
+      <h1 class="certs-heading">{{ ts.translate('certs.title') }}</h1>
+      <p class="certs-sub">{{ ts.translate('certs.subtitle') }}</p>
+    </div>
+  </section>
+
+  <div class="certs-body">
+    @if (certificates.length > 0) {
+      <div class="certs-grid">
+        @for (cert of certificates; track cert.id) {
+          <div class="cert-card card-neo" [style.border-left-color]="getCategoryColor(cert.category)">
+            <div class="cert-top" [style.background]="getCategoryColor(cert.category)">
+              <div class="cert-ribbon">🎓</div>
+              <div class="cert-category">{{ getCategoryLabel(cert.category) }}</div>
+            </div>
+            <div class="cert-body">
+              <p class="cert-label">{{ ts.translate('certs.certifies') }}</p>
+              <h2 class="cert-student">{{ cert.studentName }}</h2>
+              <p class="cert-completed">{{ ts.translate('certs.completed') }}</p>
+              <h3 class="cert-course">{{ cert.courseTitle }}</h3>
+              <div class="cert-meta">
+                <span>👤 {{ cert.instructor }}</span>
+                <span>📅 {{ formatDate(cert.issuedAt) }}</span>
+              </div>
+              <div class="cert-id">ID: {{ cert.id }}</div>
+            </div>
+            <div class="cert-footer">
+              <button class="btn-neo btn-black cert-dl-btn" (click)="downloadCertificate(cert)">
+                ⬇ {{ ts.translate('certs.download') }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="certs-empty card-neo">
+        <div class="empty-icon">🎓</div>
+        <h2>{{ ts.translate('certs.empty_title') }}</h2>
+        <p>{{ ts.translate('certs.empty_desc') }}</p>
+        <button class="btn-neo btn-black" (click)="goToCourses()">
+          {{ ts.translate('certs.go_courses') }}
+        </button>
+      </div>
+    }
+  </div>
+
+  <app-footer />
+</div>

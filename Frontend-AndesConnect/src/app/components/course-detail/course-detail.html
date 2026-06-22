@@ -1,0 +1,199 @@
+<app-navbar />
+
+<div class="cd-wrapper">
+  @if (catalog()) {
+    <section class="cd-header" [style.background]="catalog()!.color">
+      <div class="cd-header-inner">
+        <button class="back-btn btn-neo" (click)="goBack()">← {{ ts.translate('courses.back') }}</button>
+        <div class="cd-meta-badge">{{ ts.translate('courses.' + catalog()!.category) }}</div>
+        <h1 class="cd-title">{{ catalog()!.title }}</h1>
+        <p class="cd-desc">{{ catalog()!.description }}</p>
+        <div class="cd-stats-row">
+          <span class="cd-stat"><strong>⏱</strong> {{ catalog()!.duration }}</span>
+          <span class="cd-stat"><strong>📚</strong> {{ catalog()!.modules }} {{ ts.translate('courses.modules') }}</span>
+          <span class="cd-stat"><strong>📊</strong> {{ ts.translate(catalog()!.level) }}</span>
+          <span class="cd-stat"><strong>👤</strong> {{ catalog()!.instructor }}</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="cd-body">
+      <div class="cd-left">
+
+        <!-- Tabs -->
+        <div class="cd-tabs">
+          <button class="cd-tab" [class.active]="activeTab() === 'overview'" (click)="setTab('overview')">
+            {{ ts.translate('detail.tab_overview') }}
+          </button>
+          <button class="cd-tab" [class.active]="activeTab() === 'modules'" (click)="setTab('modules')">
+            {{ ts.translate('detail.tab_modules') }} ({{ modules().length }})
+          </button>
+          <button class="cd-tab" [class.active]="activeTab() === 'instructor'" (click)="setTab('instructor')">
+            {{ ts.translate('detail.tab_instructor') }}
+          </button>
+        </div>
+
+        <!-- Overview Tab -->
+        @if (activeTab() === 'overview') {
+          <div class="cd-tab-content card-neo">
+            <h2>{{ ts.translate('detail.about_course') }}</h2>
+            <p class="cd-about">{{ catalog()!.description }}</p>
+            <div class="cd-what-learn">
+              <h3>{{ ts.translate('detail.what_learn') }}</h3>
+              <ul>
+                <li>✓ Fundamentos teóricos y prácticos de {{ catalog()!.title.toLowerCase() }}</li>
+                <li>✓ Herramientas tecnológicas para el campo rural</li>
+                <li>✓ Aplicación real en contextos de comunidades andinas</li>
+                <li>✓ Certificado validado al completar el curso</li>
+                <li>✓ Contenido disponible 100% offline</li>
+              </ul>
+            </div>
+            <div class="cd-requirements">
+              <h3>{{ ts.translate('detail.requirements') }}</h3>
+              <ul>
+                <li>• Dispositivo con navegador (celular, tablet o PC)</li>
+                <li>• Conexión a Internet solo para descargar el contenido</li>
+                <li>• Ganas de aprender y mejorar tu práctica agrícola</li>
+              </ul>
+            </div>
+          </div>
+        }
+
+        <!-- Modules Tab -->
+        @if (activeTab() === 'modules') {
+          <div class="cd-modules-list">
+            @for (mod of modules(); track mod.id) {
+              <div class="cd-module-item card-neo" [class.completed]="mod.completed" [class.locked]="mod.locked" (click)="startModule(mod)">
+                <div class="mod-number">{{ mod.order }}</div>
+                <div class="mod-icon">{{ getModuleIcon(mod.type) }}</div>
+                <div class="mod-info">
+                  <h4 class="mod-title">{{ mod.title }}</h4>
+                  <p class="mod-desc">{{ mod.description }}</p>
+                  <div class="mod-meta">
+                    <span>⏱ {{ mod.duration }}</span>
+                    <span class="mod-type-badge">{{ mod.type.toUpperCase() }}</span>
+                  </div>
+                </div>
+                <div class="mod-status">
+                  @if (mod.completed) {
+                    <span class="status-done">✓</span>
+                  } @else if (mod.locked) {
+                    <span class="status-lock">🔒</span>
+                  } @else {
+                    <span class="status-play">▶</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Instructor Tab -->
+        @if (activeTab() === 'instructor') {
+          <div class="cd-tab-content card-neo">
+            <div class="instructor-card">
+              <div class="instructor-avatar">{{ catalog()!.instructor[0] }}</div>
+              <div class="instructor-info">
+                <h3>{{ catalog()!.instructor }}</h3>
+                <p class="instructor-title">Especialista en {{ ts.translate('courses.' + catalog()!.category) }}</p>
+              </div>
+            </div>
+            <p class="instructor-bio">
+              Profesional con más de 10 años de experiencia en el campo de {{ catalog()!.title.toLowerCase() }},
+              trabajando directamente con comunidades rurales andinas. Ha desarrollado metodologías de enseñanza
+              adaptadas al contexto de baja conectividad y recursos limitados.
+            </p>
+            <div class="instructor-stats">
+              <div class="instr-stat card-neo">
+                <div class="instr-stat-val">4.9</div>
+                <div class="instr-stat-lbl">Calificación</div>
+              </div>
+              <div class="instr-stat card-neo">
+                <div class="instr-stat-val">{{ catalog()!.modules }}</div>
+                <div class="instr-stat-lbl">Módulos</div>
+              </div>
+              <div class="instr-stat card-neo">
+                <div class="instr-stat-val">1.2K</div>
+                <div class="instr-stat-lbl">Estudiantes</div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Sidebar -->
+      <div class="cd-right">
+        <!-- Enroll Card -->
+        <div class="enroll-card card-neo">
+          @if (enrolled()) {
+            <div class="enrolled-status">
+              <div class="enrolled-icon">✓</div>
+              <p>{{ ts.translate('detail.enrolled') }}</p>
+            </div>
+            <div class="enroll-progress">
+              <div class="ep-row">
+                <span>{{ ts.translate('detail.progress') }}</span>
+                <span>{{ progress }}%</span>
+              </div>
+              <div class="pbar"><div class="pbf" [style.width]="progress + '%'"></div></div>
+              <p class="ep-sub">{{ completedModules }} / {{ modules().length }} {{ ts.translate('detail.modules_done') }}</p>
+            </div>
+            @if (activeModule) {
+              <button class="btn-neo btn-black enroll-btn" (click)="startModule(activeModule)">
+                ▶ {{ ts.translate('detail.continue_btn') }}
+              </button>
+            } @else if (progress === 100 && modules().length > 0) {
+              <button class="btn-neo btn-black enroll-btn" (click)="startModule(modules()[0])">
+                🔄 Repasar Curso
+              </button>
+            }
+          } @else {
+            @if (!catalog()!.available) {
+              <div class="soon-card">
+                <p>🔒 {{ ts.translate('courses.coming_soon_badge') }}</p>
+              </div>
+            } @else {
+              @if (enrollSuccess()) {
+                <div class="success-banner">✓ {{ ts.translate('detail.enroll_success') }}</div>
+              }
+              <button class="btn-neo btn-black enroll-btn" (click)="enroll()">
+                {{ ts.translate('detail.enroll_btn') }}
+              </button>
+            }
+          }
+
+          @if (isCourseDownloaded()) {
+            <div class="downloaded-badge">⬇ {{ ts.translate('courses.downloaded') }}</div>
+          } @else if (enrolled() && catalog()!.available) {
+            <button class="btn-neo download-btn" (click)="downloadCourse()" [disabled]="downloading()">
+              @if (downloading()) {
+                {{ ts.translate('detail.downloading') }}
+              } @else {
+                ⬇ {{ ts.translate('detail.download_offline') }}
+              }
+            </button>
+          }
+        </div>
+
+        <!-- Course Info Card -->
+        <div class="cd-info-card card-neo">
+          <h4>{{ ts.translate('detail.includes') }}</h4>
+          <ul class="includes-list">
+            <li>📹 Videos HD offline</li>
+            <li>📄 PDFs descargables</li>
+            <li>📝 Evaluaciones interactivas</li>
+            <li>🎓 Certificado de finalización</li>
+            <li>♾ Acceso de por vida</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="cd-not-found card-neo">
+      <h2>Curso no encontrado</h2>
+      <button class="btn-neo btn-black" (click)="goBack()">← Volver al Catálogo</button>
+    </div>
+  }
+
+  <app-footer />
+</div>

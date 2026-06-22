@@ -1,0 +1,111 @@
+<div class="aw">
+  <div class="tp">
+    <a routerLink="/home" class="btn-neo btn-sm">← VOLVER AL INICIO</a>
+  </div>
+
+  <div class="lct">
+    <div class="lc card-neo">
+      <div class="ibw">
+        <div class="bolt">🛠️</div>
+      </div>
+      <h2 class="logo font-black">ANDESCONNECT</h2>
+      <p class="ls">Registro de Administrador</p>
+
+      @if (errorMessage()) {
+        <div class="alert alert-error mb-4">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      @if (successMessage()) {
+        <div class="alert alert-success mb-4">
+          {{ successMessage() }}
+        </div>
+      }
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="fc">
+        <div class="form-group mb-4">
+          <label class="font-bold mb-1">Nombre Completo</label>
+          <div class="iw">
+            <span class="ii">👤</span>
+            <input type="text" formControlName="name" class="input-neo pl" placeholder="Ej. Juan Pérez">
+          </div>
+          @if (registerForm.controls.name.touched && registerForm.controls.name.invalid) {
+            <div class="field-error mt-1">
+              Nombre es obligatorio (mínimo 3 caracteres)
+            </div>
+          }
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="font-bold mb-1">Correo Electrónico</label>
+          <div class="iw">
+            <span class="ii">✉️</span>
+            <input type="email" formControlName="email" class="input-neo pl" placeholder="admin@andesconnect.org">
+          </div>
+          @if (registerForm.controls.email.touched && registerForm.controls.email.invalid) {
+            <div class="field-error mt-1">
+              Ingrese un correo electrónico válido
+            </div>
+          }
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="font-bold mb-1">Ubicación</label>
+          <div class="iw">
+            <span class="ii">📍</span>
+            <input type="text" formControlName="location" class="input-neo pl" placeholder="Ej. Cusco, Perú">
+          </div>
+          @if (registerForm.controls.location.touched && registerForm.controls.location.invalid) {
+            <div class="field-error mt-1">
+              Ubicación es obligatoria
+            </div>
+          }
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="font-bold mb-1">Contraseña</label>
+          <div class="iw">
+            <span class="ii">🔒</span>
+            <input type="password" formControlName="password" class="input-neo pl" placeholder="••••••••">
+          </div>
+          @if (registerForm.controls.password.touched && registerForm.controls.password.invalid) {
+            <div class="field-error mt-1">
+              Contraseña requerida (mínimo 8 caracteres)
+            </div>
+          }
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="font-bold mb-1">Confirmar Contraseña</label>
+          <div class="iw">
+            <span class="ii">🔒</span>
+            <input type="password" formControlName="confirmPassword" class="input-neo pl" placeholder="••••••••">
+          </div>
+          @if (registerForm.controls.confirmPassword.touched && registerForm.controls.confirmPassword.invalid) {
+            <div class="field-error mt-1">
+              Las contraseñas deben coincidir
+            </div>
+          }
+        </div>
+
+        <div class="form-group mb-6">
+          <label class="font-bold mb-1">Código Secreto Admin</label>
+          <div class="iw">
+            <span class="ii">🔑</span>
+            <input type="password" formControlName="secret" class="input-neo pl" placeholder="Ingrese el código del servidor">
+          </div>
+          @if (registerForm.controls.secret.touched && registerForm.controls.secret.invalid) {
+            <div class="field-error mt-1">
+              El código secreto es obligatorio
+            </div>
+          }
+        </div>
+
+        <button type="submit" class="btn-neo btn-black submit font-black" [disabled]="loading() || registerForm.invalid">
+          {{ loading() ? 'CREANDO CUENTA...' : 'CREAR CUENTA ADMINISTRADOR' }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

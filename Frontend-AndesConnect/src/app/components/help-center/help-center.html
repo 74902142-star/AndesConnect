@@ -1,0 +1,68 @@
+<app-navbar />
+
+<div class="help-wrapper">
+  <section class="help-header">
+    <div class="help-title-block">
+      <h1 class="help-heading">{{ ts.translate('help.title') }}</h1>
+      <p class="help-sub">{{ ts.translate('help.subtitle') }}</p>
+    </div>
+  </section>
+
+  <div class="help-main">
+    @if (downloadMessage()) {
+      <div class="db2 card-neo">✓ {{ downloadMessage() }}</div>
+    }
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+      <h2 class="section-title">{{ ts.translate('help.faq_title') }}</h2>
+      <div class="faq-list">
+        @for (item of faqItems(); track item.id) {
+          <div class="faq-item card-neo" [class.open]="item.open">
+            <button class="faq-question" (click)="toggleFaq(item.id)">
+              <span>{{ ts.translate(item.questionKey) }}</span>
+              <span class="faq-arrow">{{ toggleSymbol(item) }}</span>
+            </button>
+            @if (item.open) {
+              <div class="faq-answer">
+                <p>{{ ts.translate(item.answerKey) }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Support & Guide -->
+    <div class="help-bottom-row">
+      <!-- Support Card -->
+      <div class="support-card card-neo">
+        <div class="support-icon">📧</div>
+        <h3>{{ ts.translate('help.support_title') }}</h3>
+        <p>{{ ts.translate('help.support_desc') }}</p>
+        <div class="support-details">
+          <span class="support-item">
+            <strong>Email:</strong>
+            <a href="mailto:{{ ts.translate('help.support_email') }}">{{ ts.translate('help.support_email') }}</a>
+          </span>
+          <span class="support-item">
+            <strong>Tel:</strong>
+            <a href="tel:{{ ts.translate('help.support_phone') }}">{{ ts.translate('help.support_phone') }}</a>
+          </span>
+        </div>
+      </div>
+
+      <!-- Guide Card -->
+      <div class="guide-card card-neo">
+        <div class="guide-icon">📖</div>
+        <h3>{{ ts.translate('help.guide_title') }}</h3>
+        <p>{{ ts.translate('help.guide_desc') }}</p>
+        <button class="btn-neo btn-black" (click)="downloadGuide()">
+          ⬇ {{ ts.translate('help.guide_download') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <app-footer />
+</div>

@@ -1,0 +1,117 @@
+<app-navbar />
+
+<div class="sw">
+
+  <section class="sh">
+    <div class="stb">
+      <h1 class="shg">{{ ts.translate('sync.title') }}</h1>
+      <div class="nsr">
+        <span class="nl">{{ ts.translate('sync.network_label') }}</span>
+        <span class="nb" [class.bo]="!sync.isOnline()" [class.bn2]="sync.isOnline()">
+          {{ statusLabel }}
+        </span>
+      </div>
+    </div>
+    <button class="btn-neo snb" (click)="triggerSync()" [disabled]="sync.isSyncing() || !sync.isOnline() || sync.syncQueue().length === 0">
+      @if (sync.isSyncing()) { {{ ts.translate('sync.syncing_btn') }} } @else if (sync.syncQueue().length === 0) { {{ ts.translate('sync.queue_empty') }} } @else { {{ ts.translate('sync.btn_sync') }} }
+    </button>
+  </section>
+
+  <section class="sir">
+
+    <div class="sc card-neo">
+      <div class="sch">
+        <span class="si">💾</span>
+        <strong>{{ ts.translate('sync.local_storage') }}</strong>
+      </div>
+      <div class="ssr">
+        <span class="ssl">{{ ts.translate('sync.used_space') }}</span>
+        <span class="ssv">{{ sync.usedSpace().toFixed(1) }}GB / {{ sync.maxSpace().toFixed(1) }}GB</span>
+      </div>
+      <div class="storage-bar-track">
+        <div class="storage-bar-fill" [style.width]="usedPercent + '%'"></div>
+      </div>
+      <p class="sn">{{ ts.translate('sync.optimization') }}</p>
+    </div>
+
+    <div class="cc card-neo">
+      <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg" class="csvg" aria-hidden="true">
+        <rect width="500" height="200" fill="#0d1117"/>
+        <defs>
+          <pattern id="cgrid" width="25" height="25" patternUnits="userSpaceOnUse">
+            <path d="M 25 0 L 0 0 0 25" fill="none" stroke="#1a2332" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="500" height="200" fill="url(#cgrid)"/>
+        <path d="M 50 100 H 120 V 60 H 200 V 100 H 280 V 140 H 380 V 100 H 450" fill="none" stroke="#1d4ed8" stroke-width="2"/>
+        <path d="M 80 140 V 80 H 150 V 120 H 230 V 80 H 310" fill="none" stroke="#4f46e5" stroke-width="1.5"/>
+        <path d="M 200 160 H 320 V 120 H 400" fill="none" stroke="#1d4ed8" stroke-width="1.5"/>
+        <rect x="190" y="45" width="60" height="40" fill="#111827" stroke="#3b82f6" stroke-width="1.5"/>
+        <rect x="195" y="50" width="50" height="30" fill="#1e3a5f"/>
+        <text x="220" y="70" fill="#93c5fd" font-size="8" text-anchor="middle" font-family="monospace">CPU</text>
+        <rect x="120" y="55" width="12" height="22" rx="2" fill="#374151" stroke="#6b7280" stroke-width="1"/>
+        <rect x="310" y="95" width="12" height="22" rx="2" fill="#374151" stroke="#6b7280" stroke-width="1"/>
+        <circle cx="80" cy="100" r="5" fill="#3b82f6" opacity="0.9"/>
+        <circle cx="450" cy="100" r="5" fill="#4f46e5" opacity="0.9"/>
+        <circle cx="280" cy="140" r="4" fill="#ebd047"/>
+        <rect x="305" y="150" width="180" height="26" fill="rgba(0,0,0,0.8)" stroke="#3b82f6" stroke-width="1"/>
+        <text x="395" y="167" fill="#93c5fd" font-size="10" text-anchor="middle" font-family="monospace">NODE IDENTITY: {{ nodeId }}</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="ds card-neo">
+    <h2 class="section-title">{{ ts.translate('sync.downloads_title') }}</h2>
+    <div class="dl3 dd"></div>
+
+    <div class="dl2">
+      @for (dl of courseService.downloadsInProgress(); track dl.id) {
+        <div class="dr2">
+          <div class="dle">
+            <span class="db">{{ dl.badge }}</span>
+            <span class="dt">{{ dl.title }}</span>
+          </div>
+          <div class="dba">
+            <div class="dtr">
+              <div class="df" [style.width]="dl.progress + '%'"></div>
+            </div>
+          </div>
+          <div class="dri">
+            <span class="dp">{{ dl.progress }}%</span>
+            <span class="dsz">{{ dl.sizeDownloaded }} / {{ dl.sizeTotal }}</span>
+          </div>
+        </div>
+      }
+      @empty {
+        <p class="em">{{ ts.translate('sync.queue_empty') }}</p>
+      }
+    </div>
+  </section>
+
+  <div class="br">
+
+    <div class="rc card-neo">
+      <h3 class="rh">{{ ts.translate('sync.ready_title') }}</h3>
+      <div class="rg">
+        @for (file of courseService.downloadedFiles(); track file.name) {
+          <div class="ri">
+            <span class="rn">{{ displayFileName(file.name) }}</span>
+            <span class="rm">{{ file.size }} • {{ ts.translate('sync.ready_synced') }} {{ formatDate(file.downloadedAt) }}</span>
+            <span class="ck">✓</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="nsc card-neo">
+      <h3 class="nsh">{{ ts.translate('sync.need_space_title') }}</h3>
+      <p class="nsd">{{ ts.translate('sync.need_space_desc') }}</p>
+      <button class="btn-neo btn-black mb" (click)="clearStorage()" [disabled]="sync.isSyncing()">
+        @if (sync.isSyncing()) { {{ ts.translate('sync.cleaning') }} } @else { {{ ts.translate('sync.btn_manage') }} }
+      </button>
+    </div>
+
+  </div>
+
+  <app-footer />
+</div>

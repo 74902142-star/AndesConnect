@@ -1,0 +1,21 @@
+@import "../auth/login.css";
+
+.alert {
+  padding: 12px;
+  font-family: var(--font-main);
+  font-weight: bold;
+  border: var(--border-thick);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  text-align: center;
+}
+
+.alert-error {
+  background-color: var(--accent-red);
+  color: var(--neutral-white);
+}
+
+.alert-success {
+  background-color: #10B981;
+  color: var(--neutral-white);
+}
