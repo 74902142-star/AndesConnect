@@ -7,10 +7,11 @@ from .components.controllers import (
     notificaciones_router, sync_router, auth_router, archivos_descargados_router,
     logros_router, faqs_router, uploads_router
 )
-from .database import async_session, init_local_auth_db
+from .database import async_session, init_local_auth_db, _sqlite_path
 from .config import settings
 from sqlalchemy import text
 from datetime import datetime, timezone
+import aiosqlite
 
 app = FastAPI(
     title="AndesConnect API",
@@ -77,35 +78,39 @@ async def health_check():
 
 @app.get("/api/debug/db")
 async def debug_db():
+    if not _sqlite_path:
+        return {"error": "not sqlite"}
     try:
-        async with async_session() as session:
-            cursos = await session.execute(text("SELECT COUNT(*) as c FROM cursos"))
-            modulos = await session.execute(text("SELECT COUNT(*) as c FROM modulos"))
-            users = await session.execute(text("SELECT COUNT(*) as c FROM local_users"))
-            faqs = await session.execute(text("SELECT COUNT(*) as c FROM faqs"))
-            return {
-                "cursos": cursos.mappings().one()["c"],
-                "modulos": modulos.mappings().one()["c"],
-                "users": users.mappings().one()["c"],
-                "faqs": faqs.mappings().one()["c"],
-            }
+        async with aiosqlite.connect(_sqlite_path) as db:
+            cursor = await db.execute("SELECT COUNT(*) FROM cursos")
+            cursos = (await cursor.fetchone())[0]
+            cursor = await db.execute("SELECT COUNT(*) FROM modulos")
+            modulos = (await cursor.fetchone())[0]
+            cursor = await db.execute("SELECT COUNT(*) FROM local_users")
+            users = (await cursor.fetchone())[0]
+            cursor = await db.execute("SELECT COUNT(*) FROM faqs")
+            faqs = (await cursor.fetchone())[0]
+            return {"cursos": cursos, "modulos": modulos, "users": users, "faqs": faqs}
     except Exception as e:
         return {"error": str(e)}
 
 @app.get("/api/debug/seed-modulos")
 async def debug_seed_modulos():
+    if not _sqlite_path:
+        return {"error": "not sqlite"}
     try:
         import uuid as _uuid
-        async with async_session() as session:
-            result = await session.execute(text("SELECT COUNT(*) as c FROM modulos"))
-            count = result.mappings().one()["c"]
+        async with aiosqlite.connect(_sqlite_path) as db:
+            cursor = await db.execute("SELECT COUNT(*) FROM modulos")
+            count = (await cursor.fetchone())[0]
             if count == 0:
-                await session.execute(text(
-                    "INSERT INTO modulos (id, curso_id, titulo, descripcion, orden, tipo_contenido, contenido_url, duracion_minutos) VALUES (:id,:curso_id,:titulo,:descripcion,:orden,:tipo,:url,:duracion)"
-                ), {"id": str(_uuid.uuid4()), "curso_id": "drones-agricolas", "titulo": "Test Modulo", "descripcion": "Test", "orden": 1, "tipo": "video", "url": "https://example.com", "duracion": 30})
-                await session.commit()
-                result2 = await session.execute(text("SELECT COUNT(*) as c FROM modulos"))
-                return {"status": "inserted", "count": result2.mappings().one()["c"]}
+                await db.execute(
+                    "INSERT INTO modulos (id, curso_id, titulo, descripcion, orden, tipo_contenido, contenido_url, duracion_minutos) VALUES (?,?,?,?,?,?,?,?)",
+                    (str(_uuid.uuid4()), "drones-agricolas", "Test Modulo", "Test", 1, "video", "https://example.com", 30)
+                )
+                await db.commit()
+                cursor = await db.execute("SELECT COUNT(*) FROM modulos")
+                return {"status": "inserted", "count": (await cursor.fetchone())[0]}
             return {"status": "already_has", "count": count}
     except Exception as e:
         return {"error": str(e), "type": type(e).__name__}
