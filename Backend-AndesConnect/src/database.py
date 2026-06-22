@@ -2,6 +2,8 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import text
 import logging
+import hashlib
+import uuid as _uuid
 from .config import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -28,112 +30,48 @@ async_session = async_sessionmaker(
 )
 
 _TABLES = [
-    """CREATE TABLE IF NOT EXISTS perfiles (
-        id TEXT PRIMARY KEY, nombre TEXT NOT NULL, email TEXT NOT NULL,
-        rol TEXT DEFAULT 'estudiante', ubicacion TEXT, idioma_preferido TEXT DEFAULT 'es',
-        avatar_url TEXT, creado_en TEXT DEFAULT (datetime('now')), actualizado_en TEXT DEFAULT (datetime('now'))
-    )""",
-    """CREATE TABLE IF NOT EXISTS cursos (
-        id TEXT PRIMARY KEY, titulo TEXT NOT NULL, descripcion TEXT, categoria TEXT,
-        duracion TEXT, modulos INTEGER DEFAULT 0, nivel TEXT, instructor TEXT,
-        imagen TEXT, color TEXT, disponible INTEGER DEFAULT 1,
-        creado_en TEXT DEFAULT (datetime('now')), actualizado_en TEXT DEFAULT (datetime('now'))
-    )""",
-    """CREATE TABLE IF NOT EXISTS modulos (
-        id TEXT PRIMARY KEY, curso_id TEXT NOT NULL, titulo TEXT NOT NULL,
-        descripcion TEXT, orden INTEGER DEFAULT 0, tipo_contenido TEXT,
-        contenido_url TEXT, duracion_minutos INTEGER,
-        FOREIGN KEY (curso_id) REFERENCES cursos(id)
-    )""",
-    """CREATE TABLE IF NOT EXISTS inscripciones (
-        id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, curso_id TEXT NOT NULL,
-        progreso INTEGER DEFAULT 0, descargado INTEGER DEFAULT 0,
-        modulo_actual_id TEXT, tema_ui TEXT DEFAULT 'grey',
-        inscrito_en TEXT DEFAULT (datetime('now')), completado_en TEXT,
-        actualizado_en TEXT DEFAULT (datetime('now'))
-    )""",
-    """CREATE TABLE IF NOT EXISTS progreso_lecciones (
-        id TEXT PRIMARY KEY, inscripcion_id TEXT NOT NULL, modulo_id TEXT NOT NULL,
-        completado INTEGER DEFAULT 0, puntaje_evaluacion INTEGER,
-        completado_en TEXT
-    )""",
-    """CREATE TABLE IF NOT EXISTS certificados (
-        id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, curso_id TEXT NOT NULL,
-        codigo_certificado TEXT, url_certificado TEXT,
-        emitido_en TEXT DEFAULT (datetime('now'))
-    )""",
-    """CREATE TABLE IF NOT EXISTS notificaciones (
-        id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, tipo TEXT,
-        titulo TEXT, mensaje TEXT, leido INTEGER DEFAULT 0,
-        ruta_accion TEXT, creado_en TEXT DEFAULT (datetime('now'))
-    )""",
-    """CREATE TABLE IF NOT EXISTS archivos_descargados (
-        id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, curso_id TEXT NOT NULL,
-        nombre_archivo TEXT, tamano TEXT, tipo TEXT, url_local TEXT,
-        descargado_en TEXT DEFAULT (datetime('now')), eliminado_en TEXT
-    )""",
-    """CREATE TABLE IF NOT EXISTS nodos (
-        id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL,
-        almacenamiento_usado_gb REAL DEFAULT 0, almacenamiento_max_gb REAL DEFAULT 5,
-        version_app TEXT, actualizado_en TEXT DEFAULT (datetime('now'))
-    )""",
-    """CREATE TABLE IF NOT EXISTS cola_sincronizacion (
-        id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, nodo_id TEXT,
-        accion TEXT, payload TEXT, estado TEXT, error_msg TEXT,
-        creado_en TEXT DEFAULT (datetime('now'))
-    )""",
-    """CREATE TABLE IF NOT EXISTS faqs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, clave_pregunta TEXT,
-        clave_respuesta TEXT, orden INTEGER DEFAULT 0
-    )""",
-    """CREATE TABLE IF NOT EXISTS logros (
-        id TEXT PRIMARY KEY, titulo_clave TEXT, descripcion_clave TEXT, icono TEXT
-    )""",
-    """CREATE TABLE IF NOT EXISTS logros_usuario (
-        id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, logro_id TEXT NOT NULL,
-        desbloqueado_en TEXT DEFAULT (datetime('now'))
-    )""",
-    """CREATE TABLE IF NOT EXISTS local_users (
-        id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL,
-        nombre TEXT NOT NULL, location TEXT, rol TEXT DEFAULT 'estudiante',
-        created_at TEXT DEFAULT (datetime('now'))
-    )""",
+    "CREATE TABLE IF NOT EXISTS perfiles (id TEXT PRIMARY KEY, nombre TEXT NOT NULL, email TEXT NOT NULL, rol TEXT DEFAULT 'estudiante', ubicacion TEXT, idioma_preferido TEXT DEFAULT 'es', avatar_url TEXT, creado_en TEXT DEFAULT (datetime('now')), actualizado_en TEXT DEFAULT (datetime('now')))",
+    "CREATE TABLE IF NOT EXISTS cursos (id TEXT PRIMARY KEY, titulo TEXT NOT NULL, descripcion TEXT, categoria TEXT, duracion TEXT, modulos INTEGER DEFAULT 0, nivel TEXT, instructor TEXT, imagen TEXT, color TEXT, disponible INTEGER DEFAULT 1, creado_en TEXT DEFAULT (datetime('now')), actualizado_en TEXT DEFAULT (datetime('now')))",
+    "CREATE TABLE IF NOT EXISTS modulos (id TEXT PRIMARY KEY, curso_id TEXT NOT NULL, titulo TEXT NOT NULL, descripcion TEXT, orden INTEGER DEFAULT 0, tipo_contenido TEXT, contenido_url TEXT, duracion_minutos INTEGER, FOREIGN KEY (curso_id) REFERENCES cursos(id))",
+    "CREATE TABLE IF NOT EXISTS inscripciones (id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, curso_id TEXT NOT NULL, progreso INTEGER DEFAULT 0, descargado INTEGER DEFAULT 0, modulo_actual_id TEXT, tema_ui TEXT DEFAULT 'grey', inscrito_en TEXT DEFAULT (datetime('now')), completado_en TEXT, actualizado_en TEXT DEFAULT (datetime('now')))",
+    "CREATE TABLE IF NOT EXISTS progreso_lecciones (id TEXT PRIMARY KEY, inscripcion_id TEXT NOT NULL, modulo_id TEXT NOT NULL, completado INTEGER DEFAULT 0, puntaje_evaluacion INTEGER, completado_en TEXT)",
+    "CREATE TABLE IF NOT EXISTS certificados (id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, curso_id TEXT NOT NULL, codigo_certificado TEXT, url_certificado TEXT, emitido_en TEXT DEFAULT (datetime('now')))",
+    "CREATE TABLE IF NOT EXISTS notificaciones (id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, tipo TEXT, titulo TEXT, mensaje TEXT, leido INTEGER DEFAULT 0, ruta_accion TEXT, creado_en TEXT DEFAULT (datetime('now')))",
+    "CREATE TABLE IF NOT EXISTS archivos_descargados (id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, curso_id TEXT NOT NULL, nombre_archivo TEXT, tamano TEXT, tipo TEXT, url_local TEXT, descargado_en TEXT DEFAULT (datetime('now')), eliminado_en TEXT)",
+    "CREATE TABLE IF NOT EXISTS nodos (id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, almacenamiento_usado_gb REAL DEFAULT 0, almacenamiento_max_gb REAL DEFAULT 5, version_app TEXT, actualizado_en TEXT DEFAULT (datetime('now')))",
+    "CREATE TABLE IF NOT EXISTS cola_sincronizacion (id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, nodo_id TEXT, accion TEXT, payload TEXT, estado TEXT, error_msg TEXT, creado_en TEXT DEFAULT (datetime('now')))",
+    "CREATE TABLE IF NOT EXISTS faqs (id INTEGER PRIMARY KEY AUTOINCREMENT, clave_pregunta TEXT, clave_respuesta TEXT, orden INTEGER DEFAULT 0)",
+    "CREATE TABLE IF NOT EXISTS logros (id TEXT PRIMARY KEY, titulo_clave TEXT, descripcion_clave TEXT, icono TEXT)",
+    "CREATE TABLE IF NOT EXISTS logros_usuario (id TEXT PRIMARY KEY, usuario_id TEXT NOT NULL, logro_id TEXT NOT NULL, desbloqueado_en TEXT DEFAULT (datetime('now')))",
+    "CREATE TABLE IF NOT EXISTS local_users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, nombre TEXT NOT NULL, location TEXT, rol TEXT DEFAULT 'estudiante', created_at TEXT DEFAULT (datetime('now')))",
 ]
 
 
 async def init_local_auth_db():
-    import uuid as _uuid
-    import hashlib
-
-    # Step 1: Create tables
     async with engine.begin() as conn:
         for stmt in _TABLES:
             await conn.execute(text(stmt))
-    logger.info("Tablas SQLite creadas.")
 
-    # Step 2: Seed cursos
-    async with engine.begin() as conn:
-        result = await conn.execute(text("SELECT COUNT(*) as cnt FROM cursos"))
-        if result.mappings().one()["cnt"] == 0:
-            seed_courses = [
+        # Seed cursos
+        r = await conn.execute(text("SELECT COUNT(*) as cnt FROM cursos"))
+        if r.mappings().one()["cnt"] == 0:
+            for c in [
                 ("drones-agricolas", "Drones Agricolas", "Aprende a usar drones para monitoreo y fumigacion de cultivos", "Tecnologia", "8 semanas", 6, "Intermedio", "Ing. Carlos Mendoza", "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=800", "#2E7D32"),
                 ("riego-inteligente", "Riego Inteligente", "Sistemas automatizados de riego por goteo y sensores de humedad", "Tecnologia", "6 semanas", 5, "Basico", "Ing. Maria Torres", "https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800", "#1565C0"),
                 ("negocios-rurales", "Negocios Rurales", "Emprendimiento y gestion de negocios en zonas rurales", "Negocios", "10 semanas", 8, "Basico", "Lic. Ana Garcia", "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800", "#E65100"),
                 ("suelos-saludables", "Suelos Saludables", "Manejo organico del suelo y tecnicas de compostaje", "Agricultura", "5 semanas", 4, "Basico", "Ing. Roberto Sanchez", "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800", "#558B2F"),
                 ("apps-campesinas", "Apps para el Campo", "Desarrollo de aplicaciones moviles para comunidades rurales", "Tecnologia", "12 semanas", 10, "Avanzado", "Ing. Luis Fernandez", "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800", "#6A1B9A"),
                 ("cooperativas", "Cooperativas exitosas", "Organizacion y gestion de cooperativas agricolas", "Negocios", "7 semanas", 6, "Intermedio", "Lic. Carmen Rosa", "https://images.unsplash.com/photo-1556740758-90de374c12ad?w=800", "#C62828"),
-            ]
-            for c in seed_courses:
+            ]:
                 await conn.execute(text(
                     "INSERT INTO cursos (id, titulo, descripcion, categoria, duracion, modulos, nivel, instructor, imagen, color, disponible, creado_en, actualizado_en) VALUES (:id,:titulo,:descripcion,:categoria,:duracion,:modulos,:nivel,:instructor,:imagen,:color,1,datetime('now'),datetime('now'))"
                 ), {"id": c[0], "titulo": c[1], "descripcion": c[2], "categoria": c[3], "duracion": c[4], "modulos": c[5], "nivel": c[6], "instructor": c[7], "imagen": c[8], "color": c[9]})
-            logger.info("Cursos sembrados.")
+            logger.info("Cursos sembrados: 6")
 
-    # Step 3: Seed modulos
-    async with engine.begin() as conn:
-        result = await conn.execute(text("SELECT COUNT(*) as cnt FROM modulos"))
-        if result.mappings().one()["cnt"] == 0:
-            seed_modulos = [
+        # Seed modulos
+        r = await conn.execute(text("SELECT COUNT(*) as cnt FROM modulos"))
+        if r.mappings().one()["cnt"] == 0:
+            for m in [
                 ("drones-agricolas", "Introduccion a los Drones", "Conceptos basicos de drones aplicados a la agricultura", 1, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
                 ("drones-agricolas", "Tipos de Drones Agricolas", "Drones multicoptero, fijos y hibridos para agricultura", 2, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 45),
                 ("drones-agricolas", "Sensores y Camaras", "Sensores NDVI, multicamara y termicos", 3, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 40),
@@ -173,17 +111,15 @@ async def init_local_auth_db():
                 ("cooperativas", "Servicios al Socio", "Beneficios y servicios cooperativos", 4, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 25),
                 ("cooperativas", "Redes de Cooperacion", "Alianzas y federaciones", 5, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
                 ("cooperativas", "Casos de Exito", "Cooperativas exitosas en Latinoamerica", 6, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 25),
-            ]
-            for m in seed_modulos:
+            ]:
                 await conn.execute(text(
                     "INSERT INTO modulos (id, curso_id, titulo, descripcion, orden, tipo_contenido, contenido_url, duracion_minutos) VALUES (:id,:curso_id,:titulo,:descripcion,:orden,:tipo,:url,:duracion)"
                 ), {"id": str(_uuid.uuid4()), "curso_id": m[0], "titulo": m[1], "descripcion": m[2], "orden": m[3], "tipo": m[4], "url": m[5], "duracion": m[6]})
-            logger.info("Modulos sembrados.")
+            logger.info("Modulos sembrados: 39")
 
-    # Step 4: Seed faqs
-    async with engine.begin() as conn:
-        result = await conn.execute(text("SELECT COUNT(*) as cnt FROM faqs"))
-        if result.mappings().one()["cnt"] == 0:
+        # Seed faqs
+        r = await conn.execute(text("SELECT COUNT(*) as cnt FROM faqs"))
+        if r.mappings().one()["cnt"] == 0:
             for f in [
                 ("como_inscribirme", "Para inscribirte en un curso, ve a la seccion de cursos y haz clic en el boton de inscripcion.", 1),
                 ("como_descargar", "Puedes descargar contenido para uso offline desde la seccion de cursos inscritos.", 2),
@@ -193,12 +129,11 @@ async def init_local_auth_db():
                 ("idiomas", "La plataforma esta disponible en Espanol y Quechua.", 6),
             ]:
                 await conn.execute(text("INSERT INTO faqs (clave_pregunta, clave_respuesta, orden) VALUES (:k,:r,:o)"), {"k": f[0], "r": f[1], "o": f[2]})
-            logger.info("FAQs sembradas.")
+            logger.info("FAQs sembradas: 6")
 
-    # Step 5: Seed logros
-    async with engine.begin() as conn:
-        result = await conn.execute(text("SELECT COUNT(*) as cnt FROM logros"))
-        if result.mappings().one()["cnt"] == 0:
+        # Seed logros
+        r = await conn.execute(text("SELECT COUNT(*) as cnt FROM logros"))
+        if r.mappings().one()["cnt"] == 0:
             for l in [
                 ("first_course", "Primer Paso", "Completaste tu primer curso", "trophy"),
                 ("half_progress", "A Medio Camino", "Alcanzaste 50% de progreso general", "star"),
@@ -206,12 +141,11 @@ async def init_local_auth_db():
                 ("offline_master", "Maestro Offline", "Usaste la app 5 veces en modo offline", "wifi_off"),
             ]:
                 await conn.execute(text("INSERT INTO logros (id, titulo_clave, descripcion_clave, icono) VALUES (:id,:t,:d,:i)"), {"id": l[0], "t": l[1], "d": l[2], "i": l[3]})
-            logger.info("Logros sembrados.")
+            logger.info("Logros sembrados: 4")
 
-    # Step 6: Seed admin user
-    async with engine.begin() as conn:
-        result = await conn.execute(text("SELECT COUNT(*) as cnt FROM local_users"))
-        if result.mappings().one()["cnt"] == 0:
+        # Seed admin user
+        r = await conn.execute(text("SELECT COUNT(*) as cnt FROM local_users"))
+        if r.mappings().one()["cnt"] == 0:
             pass_hash = hashlib.sha256("admin123".encode()).hexdigest()
             await conn.execute(text(
                 "INSERT INTO local_users (id, email, password_hash, nombre, location, rol) VALUES (:id,:email,:ph,:n,:loc,:rol)"
@@ -222,13 +156,12 @@ async def init_local_auth_db():
 
 
 async def get_db():
-    async with async_session() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception as e:
-            logger.error(f"Error en transaccion, ROLLBACK: {str(e)}")
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
+    async with engine.begin() as conn:
+        async with AsyncSession(bind=conn, expire_on_commit=False) as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception as e:
+                logger.error(f"Error en transaccion, ROLLBACK: {str(e)}")
+                await session.rollback()
+                raise
