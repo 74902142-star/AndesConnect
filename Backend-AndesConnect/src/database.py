@@ -125,6 +125,61 @@ async def init_local_auth_db():
                     "INSERT INTO cursos (id, titulo, descripcion, categoria, duracion, modulos, nivel, instructor, imagen, color, disponible, creado_en, actualizado_en) VALUES (:id,:titulo,:descripcion,:categoria,:duracion,:modulos,:nivel,:instructor,:imagen,:color,1,datetime('now'),datetime('now'))"
                 ), {"id": c[0], "titulo": c[1], "descripcion": c[2], "categoria": c[3], "duracion": c[4], "modulos": c[5], "nivel": c[6], "instructor": c[7], "imagen": c[8], "color": c[9]})
 
+        existing_modulos = await conn.execute(text("SELECT COUNT(*) as cnt FROM modulos"))
+        if existing_modulos.mappings().one()["cnt"] == 0:
+            import uuid as _uuid
+            seed_modulos = [
+                # Drones Agricolas (6 modulos)
+                ("drones-agricolas", "Introduccion a los Drones", "Conceptos basicos de drones aplicados a la agricultura", 1, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
+                ("drones-agricolas", "Tipos de Drones Agricolas", "Drones multicoptero, fijos y hibridos para agricultura", 2, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 45),
+                ("drones-agricolas", "Sensores y Cámaras", "Sensores NDVI, multicamara y termicos", 3, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 40),
+                ("drones-agricolas", "Planificacion de Vuelo", "Rutas de vuelo y configuracion de misiones", 4, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 35),
+                ("drones-agricolas", "Fumigacion con Drones", "Tecnicas de pulverizacion aerea", 5, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 50),
+                ("drones-agricolas", "Analisis de Datos", "Interpretacion de imagenes y mapas NDVI", 6, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 40),
+                # Riego Inteligente (5 modulos)
+                ("riego-inteligente", "Fundamentos del Riego", "Tipos de riego y eficiencia hidrica", 1, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 25),
+                ("riego-inteligente", "Sensores de Humedad", "Tipos de sensores y su instalacion", 2, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
+                ("riego-inteligente", "Sistemas de Goteo", "Diseno y mantenimiento de riego por goteo", 3, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 40),
+                ("riego-inteligente", "Automatizacion", "Control automatico con Arduino y Raspberry Pi", 4, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 45),
+                ("riego-inteligente", "Monitoreo Remoto", "Apps y plataformas de control remoto", 5, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 35),
+                # Negocios Rurales (8 modulos)
+                ("negocios-rurales", "Emprendimiento Rural", "Identificacion de oportunidades de negocio", 1, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
+                ("negocios-rurales", "Plan de Negocio", "Elaboracion de un plan de negocio rural", 2, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 45),
+                ("negocios-rurales", "Finanzas Basicas", "Control de gastos e ingresos", 3, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 35),
+                ("negocios-rurales", "Marketing Digital", "Como vender productos rurales online", 4, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 40),
+                ("negocios-rurales", "Cadenas de Suministro", "Logistica y distribucion de productos", 5, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 35),
+                ("negocios-rurales", "Certificaciones", "Organico, fair trade y otras certificaciones", 6, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
+                ("negocios-rurales", "Exportaciones", "Como exportar productos agricolas", 7, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 40),
+                ("negocios-rurales", "Casos de Exito", "Historias de negocios rurales exitosos", 8, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 25),
+                # Suelos Saludables (4 modulos)
+                ("suelos-saludables", "Biologia del Suelo", "Microorganismos y nutrientes", 1, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
+                ("suelos-saludables", "Analisis de Suelo", "Como interpretar un estudio de suelo", 2, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 35),
+                ("suelos-saludables", "Compostaje", "Tecnicas de compostaje casero y profesional", 3, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 40),
+                ("suelos-saludables", "Abono Verde", "Cultivos de abono verde y rotacion", 4, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
+                # Apps para el Campo (10 modulos)
+                ("apps-campesinas", "Introduccion al Desarrollo", "Conceptos basicos de programacion movil", 1, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 40),
+                ("apps-campesinas", "Framework Movil", "Ionic, Flutter o React Native", 2, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 45),
+                ("apps-campesinas", "Diseno UI/UX", "Interfaces amigables para comunidades rurales", 3, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 35),
+                ("apps-campesinas", "Base de Datos", "SQLite y almacenamiento local offline", 4, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 40),
+                ("apps-campesinas", "Funcionalidad Offline", "Trabajar sin conexion a internet", 5, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 45),
+                ("apps-campesinas", "Notificaciones Push", "Alertas y mensajes a usuarios", 6, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
+                ("apps-campesinas", "GPS y Mapas", "Integracion de geolocalizacion", 7, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 40),
+                ("apps-campesinas", "Camara y Fotos", "Captura de imagenes del cultivo", 8, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
+                ("apps-campesinas", "Publicacion en Stores", "Google Play y App Store", 9, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 25),
+                ("apps-campesinas", "Proyecto Final", "Desarrollo completo de una app rural", 10, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 60),
+                # Cooperativas (6 modulos)
+                ("cooperativas", "Que es una Cooperativa", "Definicion, principios y valores", 1, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 25),
+                ("cooperativas", "Formacion Juridica", "Constitucion legal y estatutos", 2, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 35),
+                ("cooperativas", "Gestion Administrativa", "Organizacion interna y roles", 3, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
+                ("cooperativas", "Servicios al Socio", "Beneficios y servicios cooperativos", 4, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 25),
+                ("cooperativas", "Redes de Cooperacion", "Alianzas y federaciones", 5, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 30),
+                ("cooperativas", "Casos de Exito", "Cooperativas exitosas en Latinoamerica", 6, "video", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 25),
+            ]
+            for m in seed_modulos:
+                await conn.execute(text(
+                    "INSERT INTO modulos (id, curso_id, titulo, descripcion, orden, tipo_contenido, contenido_url, duracion_minutos) VALUES (:id,:curso_id,:titulo,:descripcion,:orden,:tipo,:url,:duracion)"
+                ), {"id": str(_uuid.uuid4()), "curso_id": m[0], "titulo": m[1], "descripcion": m[2], "orden": m[3], "tipo": m[4], "url": m[5], "duracion": m[6]})
+
         existing_faqs = await conn.execute(text("SELECT COUNT(*) as cnt FROM faqs"))
         if existing_faqs.mappings().one()["cnt"] == 0:
             for f in [
