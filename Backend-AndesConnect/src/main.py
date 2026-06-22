@@ -75,6 +75,21 @@ async def health_check():
     except Exception as e:
         return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
 
+@app.get("/api/debug/db")
+async def debug_db():
+    try:
+        async with async_session() as session:
+            cursos = await session.execute(text("SELECT COUNT(*) as c FROM cursos"))
+            modulos = await session.execute(text("SELECT COUNT(*) as c FROM modulos"))
+            users = await session.execute(text("SELECT COUNT(*) as c FROM local_users"))
+            return {
+                "cursos": cursos.mappings().one()["c"],
+                "modulos": modulos.mappings().one()["c"],
+                "users": users.mappings().one()["c"],
+            }
+    except Exception as e:
+        return {"error": str(e)}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
