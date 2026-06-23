@@ -19,8 +19,14 @@ _is_sqlite = settings.DATABASE_URL.startswith("sqlite")
 # Extract raw sqlite path from the URL
 _sqlite_path = None
 if _is_sqlite:
-    # sqlite+aiosqlite:///andesconnect_local.db -> andesconnect_local.db
-    _sqlite_path = settings.DATABASE_URL.split("///")[-1]
+    # sqlite+aiosqlite:///path -> /path  or  sqlite+aiosqlite:////tmp/path -> /tmp/path
+    raw = settings.DATABASE_URL.split("sqlite+aiosqlite://")[-1]
+    if raw.startswith("////"):
+        _sqlite_path = raw[3:]  # //tmp/file -> /tmp/file
+    elif raw.startswith("///"):
+        _sqlite_path = raw[2:]  # /file -> /file (relative, make absolute)
+        import os as _os
+        _sqlite_path = _os.path.abspath(_sqlite_path)
 
 engine = create_async_engine(
     settings.DATABASE_URL,

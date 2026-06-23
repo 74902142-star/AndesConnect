@@ -11,9 +11,9 @@ class Settings:
         "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
     )
     
-    # Si estamos en Vercel, forzar SQLite (no hay PostgreSQL disponible)
+    # Si estamos en Vercel, forzar SQLite en /tmp (no hay PostgreSQL disponible)
     if os.environ.get("VERCEL"):
-        DATABASE_URL = "sqlite+aiosqlite:///andesconnect_local.db"
+        DATABASE_URL = "sqlite+aiosqlite:////tmp/andesconnect_local.db"
     
     # Secreto JWT para descodificar tokens emitidos por Supabase Auth
     # En producción, esto se obtiene de Supabase -> Settings -> API -> JWT Settings -> JWT Secret
