@@ -7,7 +7,7 @@ from .components.controllers import (
     notificaciones_router, sync_router, auth_router, archivos_descargados_router,
     logros_router, faqs_router, uploads_router
 )
-from .database import async_session, init_local_auth_db, _sqlite_path
+from .database import async_session, init_local_auth_db
 from .config import settings
 from sqlalchemy import text
 from datetime import datetime, timezone
@@ -78,24 +78,35 @@ async def health_check():
 
 @app.get("/api/debug/db")
 async def debug_db():
+    from .config import settings
+    from .database import _sqlite_path, _is_sqlite
+    import os
+    info = {
+        "db_url_prefix": settings.DATABASE_URL[:50],
+        "is_sqlite": _is_sqlite,
+        "sqlite_path": _sqlite_path,
+        "vercel_env": bool(os.environ.get("VERCEL")),
+    }
     if not _sqlite_path:
-        return {"error": "not sqlite"}
+        return info
     try:
         async with aiosqlite.connect(_sqlite_path) as db:
             cursor = await db.execute("SELECT COUNT(*) FROM cursos")
-            cursos = (await cursor.fetchone())[0]
+            info["cursos"] = (await cursor.fetchone())[0]
             cursor = await db.execute("SELECT COUNT(*) FROM modulos")
-            modulos = (await cursor.fetchone())[0]
+            info["modulos"] = (await cursor.fetchone())[0]
             cursor = await db.execute("SELECT COUNT(*) FROM local_users")
-            users = (await cursor.fetchone())[0]
+            info["users"] = (await cursor.fetchone())[0]
             cursor = await db.execute("SELECT COUNT(*) FROM faqs")
-            faqs = (await cursor.fetchone())[0]
-            return {"cursos": cursos, "modulos": modulos, "users": users, "faqs": faqs}
+            info["faqs"] = (await cursor.fetchone())[0]
+            return info
     except Exception as e:
-        return {"error": str(e)}
+        info["error"] = str(e)
+        return info
 
 @app.get("/api/debug/seed-modulos")
 async def debug_seed_modulos():
+    from .database import _sqlite_path
     if not _sqlite_path:
         return {"error": "not sqlite"}
     try:
@@ -106,7 +117,6 @@ async def debug_seed_modulos():
         if os.path.exists(abs_path):
             import stat
             st = os.stat(abs_path)
-            file_info["readonly"] = bool(st.st_mode & stat.S_IRGRP == 0)
             file_info["mode"] = oct(st.st_mode)
             file_info["size"] = st.st_size
 
