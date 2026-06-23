@@ -11,7 +11,6 @@ from .database import async_session, init_local_auth_db
 from .config import settings
 from sqlalchemy import text
 from datetime import datetime, timezone
-import aiosqlite
 
 app = FastAPI(
     title="AndesConnect API",
@@ -75,75 +74,6 @@ async def health_check():
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
-
-@app.get("/api/debug/db")
-async def debug_db():
-    from .config import settings
-    from .database import _sqlite_path, _is_sqlite
-    import os
-    info = {
-        "db_url_prefix": settings.DATABASE_URL[:50],
-        "is_sqlite": _is_sqlite,
-        "sqlite_path": _sqlite_path,
-        "vercel_env": bool(os.environ.get("VERCEL")),
-    }
-    if not _sqlite_path:
-        return info
-    try:
-        async with aiosqlite.connect(_sqlite_path) as db:
-            cursor = await db.execute("SELECT COUNT(*) FROM cursos")
-            info["cursos"] = (await cursor.fetchone())[0]
-            cursor = await db.execute("SELECT COUNT(*) FROM modulos")
-            info["modulos"] = (await cursor.fetchone())[0]
-            cursor = await db.execute("SELECT COUNT(*) FROM local_users")
-            info["users"] = (await cursor.fetchone())[0]
-            cursor = await db.execute("SELECT COUNT(*) FROM faqs")
-            info["faqs"] = (await cursor.fetchone())[0]
-            return info
-    except Exception as e:
-        info["error"] = str(e)
-        return info
-
-@app.get("/api/debug/seed-modulos")
-async def debug_seed_modulos():
-    from .database import _sqlite_path
-    if not _sqlite_path:
-        return {"error": "not sqlite"}
-    try:
-        import uuid as _uuid
-        import os
-        abs_path = os.path.abspath(_sqlite_path)
-        file_info = {"path": abs_path, "exists": os.path.exists(abs_path)}
-        if os.path.exists(abs_path):
-            import stat
-            st = os.stat(abs_path)
-            file_info["mode"] = oct(st.st_mode)
-            file_info["size"] = st.st_size
-
-        async with aiosqlite.connect(_sqlite_path) as db:
-            cursor = await db.execute("PRAGMA journal_mode")
-            jrnl = (await cursor.fetchone())[0]
-            file_info["journal_mode"] = jrnl
-
-            cursor = await db.execute("SELECT COUNT(*) FROM modulos")
-            count = (await cursor.fetchone())[0]
-            file_info["modulos_count"] = count
-
-            if count == 0:
-                try:
-                    await db.execute(
-                        "INSERT INTO modulos (id, curso_id, titulo, descripcion, orden, tipo_contenido, contenido_url, duracion_minutos) VALUES (?,?,?,?,?,?,?,?)",
-                        (str(_uuid.uuid4()), "drones-agricolas", "Test Modulo", "Test", 1, "video", "https://example.com", 30)
-                    )
-                    await db.commit()
-                    cursor = await db.execute("SELECT COUNT(*) FROM modulos")
-                    file_info["after_insert"] = (await cursor.fetchone())[0]
-                except Exception as insert_err:
-                    file_info["insert_error"] = str(insert_err)
-
-        return file_info
-    except Exception as e:
-        return {"error": str(e), "type": type(e).__name__}
 
 if __name__ == "__main__":
     import uvicorn
